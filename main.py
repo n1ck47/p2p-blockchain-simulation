@@ -2,11 +2,13 @@ import simpy
 from node import Node
 
 env = simpy.Environment()
-sender = Node(1, env)
-receiver = Node(2, env)
+n = 10
+network = list()
+for i in range(n):
+    node = Node(i, env, True, True)
+    network.append(node)
 
-env.process(sender.send_msg("hiiii", receiver))
+env.process(network[2].send_msg("hiiii", network[5]))
+env.process(network[4].send_msg("hiiii", network[9]))
 env.run()
 
-print(sender.prop_delay)
-print(receiver.prop_delay)
