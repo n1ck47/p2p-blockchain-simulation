@@ -1,5 +1,6 @@
 import simpy
 from node import Node
+from network import finalise_network
 import numpy as np
 
 def initialize_nodes(n, z0, z1):
@@ -44,9 +45,12 @@ n = 10 # number of peers
 z0 = 0.4 # Fraction of slow peers
 z1 = 0.4 # Fraction of low cpu peers
 
-network = initialize_nodes(n, z0, z1)
+Node.network = initialize_nodes(n, z0, z1)
+finalise_network(n,Node.network) # connects the peers 
 
-env.process(network[2].send_msg("hiiii", network[5]))
-env.process(network[4].send_msg("hiiii", network[9]))
+
+env.process(Node.network[2].generate_txn())
 env.run()
 
+for elm in Node.network:
+    print(elm.neighbours)
