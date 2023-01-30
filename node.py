@@ -9,6 +9,8 @@ class Node:
         self.prop_delay = np.random.uniform(10,500)
         self.is_fast = is_fast # Is node fast or slow?
         self.cpu_high = cpu_high # Does the node have a high computing powered cpu or not?
+        self.neighbours = list()
+        self.hashing_power = 0
 
     def compute_delay(self, msg_type, receiver):
         link_speed = 5 # in Mbps
@@ -23,8 +25,9 @@ class Node:
         return queueing_delay + self.prop_delay + (msg_size*8)/(link_speed*1024)
 
     def send_msg(self,msg,receiver):
-        print(f"Fast: {receiver.is_fast} -- {self.compute_delay('txn', receiver)}")
-        yield self.env.timeout(10)
+        delay = self.compute_delay('txn', receiver)
+        print(f"High: {receiver.cpu_high} -- Delay: {delay} -- Power: {self.hashing_power}")
+        yield self.env.timeout(delay)
         receiver.recv_msg(msg)
     
     def recv_msg(self,msg):
