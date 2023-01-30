@@ -2,6 +2,7 @@ from uuid import uuid4
 from datetime import datetime
 from constants import *
 from enum import Enum
+from node import *
 
 class TxnType(Enum):
     normal = "normal"
@@ -20,13 +21,13 @@ class Transaction:
 
     def __str__(self):
         string = (
-            str(self.transactionid)
+            str(self.id)
             + ": "
-            + str(self.senderid)
+            + str(self.sender_id)
             + " pays "
-            + str(self.receiverid)
+            + str(self.receiver_id)
             + " "
-            + str(self.coin)
+            + str(self.qty)
             + " coins."
         )
         return string
@@ -38,5 +39,3 @@ class CoinbaseTransaction:
         self.type = TxnType.coinbase
         self.fee = MINING_FEE + txn_fees
         self.miner_id = miner_id
-
-
