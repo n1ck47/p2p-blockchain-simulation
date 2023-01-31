@@ -54,7 +54,8 @@ for node in Node.network:
     env.process(node.generate_txn())
 env.run()
 
-for elm in Node.network:
-    print(elm.neighbours, elm.txn_pool, len(elm.txn_pool))
+# for elm in Node.network:
+#     print(elm.neighbours, elm.txn_pool, len(elm.txn_pool))
 
-
+for node in Node.network:
+    print(node.balance)

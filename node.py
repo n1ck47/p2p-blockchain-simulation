@@ -1,9 +1,12 @@
 import simpy
 import random
 import numpy as np
+from txn import Transaction
+from functools import reduce
 
 class Node:
     network = list()
+    txn_time = 6000 # avg interarrival time between each txn generation
     def __init__(self, id, env, is_fast, cpu_high):
         self.id = id
         self.env = env
@@ -13,6 +16,12 @@ class Node:
         self.neighbours = list()
         self.hashing_power = 0
         self.txn_pool = list()
+        self.utx0 = list()
+        self.balance = 0
+
+    def update_balance(self):
+        for txn in self.utx0:
+            self.balance += txn.qty
 
     def compute_delay(self, msg_size, receiver):
         link_speed = 5 # in Mbps
@@ -26,12 +35,18 @@ class Node:
     def generate_txn(self):
         itr = 0
         while True:
-            txn = str(self.id)+"Hellu"+str(len(self.txn_pool)) #create txn object
+            # txn = str(self.id)+"Hellu"+str(len(self.txn_pool)) #create txn object
+            n = len(self.network)
+            receiver_id = self.id
+            while(self.id == receiver_id):
+                receiver_id = random.randint(0, n-1)
+
+            # print(receiver_id ,len(self.network))
+            txn = Transaction(100, self, self.network[receiver_id])
             self.txn_pool.append(txn)
-            yield self.env.process(self.broadcast_txn(None, txn))
-            itr+=1
-            if(itr>5):
-                break
+            delay = np.random.exponential(self.txn_time)
+            yield self.env.process(self.broadcast_txn(None, txn)) & self.env.timeout(delay)
+            break
 
     def broadcast_txn(self, prev_node, txn):
         mssg_events = list() # list of all send_msg events
@@ -58,6 +73,9 @@ class Node:
             if msg in self.txn_pool:
                 return
             self.txn_pool.append(msg)
-            print(f"Mssg received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
+            if(msg.receiver_id == self.id):
+                self.utx0.append(msg)
+                self.update_balance()
+            # print(f"Mssg received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
         
         yield self.env.process(self.broadcast_txn(sender, msg))
