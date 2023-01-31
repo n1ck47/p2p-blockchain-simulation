@@ -39,6 +39,8 @@ def set_hashing_power(low_cpu_peers, high_cpu_peers, network):
         else:
             network[i].hashing_power = low_hash_power
 
+# def run_txns():
+
 
 env = simpy.Environment()
 n = 10 # number of peers
@@ -48,9 +50,11 @@ z1 = 0.4 # Fraction of low cpu peers
 Node.network = initialize_nodes(n, z0, z1)
 finalise_network(n,Node.network) # connects the peers 
 
-
-env.process(Node.network[2].generate_txn())
+for node in Node.network:
+    env.process(node.generate_txn())
 env.run()
 
 for elm in Node.network:
-    print(elm.neighbours)
+    print(elm.neighbours, elm.txn_pool, len(elm.txn_pool))
+
+
