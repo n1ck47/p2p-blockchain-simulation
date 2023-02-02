@@ -1,7 +1,5 @@
 from block import GenesisBlock,Block
-import sys
 
-sys.setrecursionlimit(2000000)
 class Blockchain:
     def __init__(self):
         self.genesis=GenesisBlock()
