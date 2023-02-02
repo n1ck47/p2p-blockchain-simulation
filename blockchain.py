@@ -20,6 +20,9 @@ class Blockchain:
         return finalblock
     
     def add_block(self,block):
+        if len(self.genesis.children)==0:
+            self.genesis.children.append(block)
+            return
         lastblock=self.getlastblock()
         lastblock.children.append(block)
         return
