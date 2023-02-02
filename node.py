@@ -119,7 +119,7 @@ class Node:
                 if(sender.balance >= txn.qty):
                     continue
                 return # block is invalid
-            # self.blockchain.add_block(msg)
+            self.blockchain.add_block(msg)
 
         print(f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
         
