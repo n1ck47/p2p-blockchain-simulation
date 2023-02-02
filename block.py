@@ -10,15 +10,16 @@ class BlockType(Enum):
     genesis = "genesis"
 
 class Block:
-    def __init__(self, prev_hash, miner_id):
-        self.id = uuid4()
-        self.type = BlockType.normal
+    def __init__(self, prev_hash):
+        self.id = uuid4() #
+        self.type = BlockType.normal 
         self.timestamp = datetime.now().timestamp()
-        self.size = BLOCK_SIZE
+        self.size = BLOCK_SIZE #
         self.txn_fees = 0
-        self.txns = []
-        self.prev_hash = prev_hash
-        self.miner_id = miner_id
+        self.txns = [] #
+        self.prev_hash = prev_hash #
+        # self.miner_id = miner_id 
+        self.children=list() 
     
     def add_txn(self, txn):
         self.txn_fees += txn.txn_fees
@@ -37,6 +38,7 @@ class GenesisBlock:
         self.type = BlockType.genesis
         self.timestamp = datetime.now().timestamp()
         self.hash = '0'*256
+        self.children=list()
 
 
     
