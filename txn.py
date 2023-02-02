@@ -34,8 +34,8 @@ class Transaction:
 
 
 class CoinbaseTransaction:
-    def __init__(self, miner_id, txn_fees):
+    def __init__(self, miner_id):
         self.id = uuid4()
         self.type = TxnType.coinbase
-        self.fee = MINING_FEE + txn_fees
+        self.fee = MINING_FEE
         self.miner_id = miner_id

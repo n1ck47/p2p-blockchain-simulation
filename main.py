@@ -52,10 +52,13 @@ finalise_network(n,Node.network) # connects the peers
 
 for node in Node.network:
     env.process(node.generate_txn())
+
+# Node.network[0].
+env.process(Node.network[0].mine_block())
 env.run()
 
 # for elm in Node.network:
 #     print(elm.neighbours, elm.txn_pool, len(elm.txn_pool))
 
-for node in Node.network:
-    print(node.balance)
+# for node in Node.network:
+#     print(node.balance)
