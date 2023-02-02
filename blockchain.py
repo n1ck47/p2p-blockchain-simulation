@@ -1,5 +1,8 @@
 from block import GenesisBlock,Block
+
 import sys
+
+# sys.setrecursionlimit(2000000)
 
 sys.setrecursionlimit(2000000000)
 class Blockchain:
@@ -8,7 +11,9 @@ class Blockchain:
         self.total=1
     
     def height(self,node):
-        if not node.children:
+        # print(node.get_hash(), len(node.children))
+        # print(self.display_chain())
+        if len(node.children) == 0:
             return (1, node)
         else:
             heights = [self.height(child) for child in node.children]
@@ -20,21 +25,36 @@ class Blockchain:
             return node
         else:
             for child in node.children:
-                return findprevblock(child,prevhash)
+                result=self.findprevblock(child,prevhash)
+                if result:
+                    return result
+            return None
+        
     
     def getlastblock(self):
         finalblock=self.height(self.genesis)[1]
         return finalblock
     
     def add_block(self,block):
-        if len(self.genesis.children)==0:
-            self.genesis.children.append(block)
-            return
+        new_block = block.get_copy()
         prevhash=block.prev_hash
         prevblock=self.findprevblock(self.genesis,prevhash)
-        prevblock.children.append(block)
+        prevblock.children.append(new_block)
         return
+
+    def block_exist(self,block, current_block):
+        if current_block is None:
+            current_block = self.genesis
+        # print('exist', len(current_block.children), block.get_hash() == current_block.get_hash(),  block.get_hash(), current_block.get_hash())
+        if block.get_hash() == current_block.get_hash():
+            return True
+        for child in current_block.children:
+            if(self.block_exist(block, child)):
+                return True
+        return False
+
     def allnodesinchain(self,node):
+        # print(node.get_hash(), len(node.children), 'dis')
         if not node.children:
             return (1, [node])
         else:
@@ -42,7 +62,7 @@ class Blockchain:
             max_height, last_block = max(heights, key=lambda x: x[0])
             return (1 + max_height, [node] + last_block)
     def display_chain(self):
-        return self.allnodesinchain(self.genesis)[1]
+        return [node.get_hash() for node in self.allnodesinchain(self.genesis)[1]]
 
 
 # blkchain=Blockchain()
