@@ -7,19 +7,15 @@ def create_network(network, next_elms, links, que):
         next_elms = random.sample(next_elms, len(next_elms))
         u = que.pop(0)
         visited[u] = True
-        # print(u)
-        # print(network)
         next_elms.remove(u)
         size = links - len(network[u].neighbours)
         start = len(network[u].neighbours)
         
-         #random.sample(node, len(node))
         i = 0
         while(next_elms):
             if(i >= len(next_elms)):
                 break
             v = next_elms[i]
-            # print(next_elms ,v)
             if(len(network[v].neighbours) < links and len(network[u].neighbours)<links):
                 network[v].neighbours.append(u)
                 network[u].neighbours.append(v)
@@ -36,7 +32,6 @@ def create_network(network, next_elms, links, que):
             if(not visited[network[u].neighbours[i]]):
                 que.append(network[u].neighbours[i])
                 visited[network[u].neighbours[i]] = True
-        # print(que)
 
 
 def dfs(u, network, visited):

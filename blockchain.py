@@ -1,9 +1,5 @@
 from block import GenesisBlock,Block
 
-import sys
-
-# sys.setrecursionlimit(2000000)
-
 class Blockchain:
     def __init__(self):
         self.genesis=GenesisBlock()
@@ -39,8 +35,6 @@ class Blockchain:
         prevhash=block.prev_hash
         prevblock=self.findprevblock(self.genesis,prevhash)
         prevblock.children.append(new_block)
-
-        return
 
     def block_exist(self,block, current_block):
         if current_block is None:

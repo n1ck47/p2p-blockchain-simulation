@@ -8,7 +8,7 @@ from blockchain import Blockchain
 
 class Node:
     network = list()
-    txn_time = 6000 # avg interarrival time between each txn generation
+    txn_time = 60000 # avg interarrival time between each txn generation
     mining_time = 600000
     def __init__(self, id, env, is_fast, cpu_high):
         self.id = id
@@ -25,7 +25,6 @@ class Node:
         self.blockchain = Blockchain()
 
     def update_balance(self):
-        self.balance = 0
         for txn in self.utx0:
             self.balance += txn.qty
 
@@ -40,7 +39,6 @@ class Node:
     def generate_txn(self):
         itr=0
         while True:
-            txn = str(self.id)+"Hellu"+str(len(self.txn_pool)) #create txn object
             n = len(self.network)
             receiver_id = self.id
             while(self.id == receiver_id):
@@ -119,7 +117,6 @@ class Node:
         delay = self.compute_delay(msg_size, receiver)
         yield self.env.timeout(delay)
         self.env.process(receiver.recv_msg(self, msg, msg_type))
-        # return delay        
     
     def recv_msg(self,sender, msg, msg_type):
         
