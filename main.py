@@ -61,14 +61,14 @@ for node in Node.network:
 # env.process(Node.network[0].mine_block())
 # env.process(Node.network[1].mine_block())
 
-env.run(until=328118532)
+env.run(until=30811853)
 
 # for elm in Node.network:
-#     print(elm.neighbours, elm.txn_pool, len(elm.txn_pool))
+#     print(elm.id, len(elm.txn_pool))
 
 for node in Node.network:
     print(node.id, len(node.blockchain.display_chain()))
 
 
-for node in Node.network:
-    print(node.balance, node.mining_money)
+# for node in Node.network:
+#     print(node.id, node.balance, node.mining_money)
