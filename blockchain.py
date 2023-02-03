@@ -1,6 +1,6 @@
 from block import GenesisBlock,Block
 
-# import sys
+import sys
 
 # sys.setrecursionlimit(2000000)
 
@@ -19,14 +19,27 @@ class Blockchain:
             max_height, last_block = max(heights, key=lambda x: x[0])
             return (1 + max_height, last_block)
     
+    def findprevblock(self,node,prevhash):
+        if node.get_hash()==prevhash:
+            return node
+        else:
+            for child in node.children:
+                result=self.findprevblock(child,prevhash)
+                if result:
+                    return result
+            return None
+        
+    
     def getlastblock(self):
         finalblock=self.height(self.genesis)[1]
         return finalblock
     
     def add_block(self,block):
         new_block = block.get_copy()
-        lastblock=self.getlastblock()
-        lastblock.children.append(new_block)
+        prevhash=block.prev_hash
+        prevblock=self.findprevblock(self.genesis,prevhash)
+        prevblock.children.append(new_block)
+
         return
 
     def block_exist(self,block, current_block):
