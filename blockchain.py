@@ -15,8 +15,12 @@ class Blockchain:
             max_height, last_block = max(heights, key=lambda x: x[0])
             return (1 + max_height, last_block)
     
-    def findprevblock(self):
-        
+    def findprevblock(self,node,prevhash):
+        if node.get_hash()==prevhash:
+            return node
+        else:
+            for child in node.children:
+                return findprevblock(child,prevhash)
     
     def getlastblock(self):
         finalblock=self.height(self.genesis)[1]
@@ -27,9 +31,8 @@ class Blockchain:
             self.genesis.children.append(block)
             return
         prevhash=block.prev_hash
-        prevblock=findprevblock()
-        lastblock=self.getlastblock()
-        lastblock.children.append(block)
+        prevblock=self.findprevblock(self.genesis,prevhash)
+        prevblock.children.append(block)
         return
     def allnodesinchain(self,node):
         if not node.children:
