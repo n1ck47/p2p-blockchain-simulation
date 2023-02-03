@@ -9,6 +9,8 @@ class Blockchain:
     def height(self,node):
         # print(node.get_hash(), len(node.children))
         # print(self.display_chain())
+        if node is None:
+            return (0, None)
         if len(node.children) == 0:
             return (1, node)
         else:
@@ -17,6 +19,8 @@ class Blockchain:
             return (1 + max_height, last_block)
     
     def findprevblock(self,node,prevhash):
+        if node is None:
+            return None
         if node.get_hash()==prevhash:
             return node
         else:
@@ -32,9 +36,13 @@ class Blockchain:
         return finalblock
     
     def add_block(self,block):
+        if block is None:
+            return 
         new_block = block.get_copy()
         prevhash=block.prev_hash
         prevblock=self.findprevblock(self.genesis,prevhash)
+        if prevblock is None:
+            return
         prevblock.children.append(new_block)
 
     def block_exist(self,block, current_block):

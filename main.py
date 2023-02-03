@@ -53,17 +53,13 @@ Node.network = initialize_nodes(n, z0, z1)
 finalise_network(n,Node.network) # connects the peers 
 
 for elm in Node.network:
-    print(elm.neighbours)
+    print(elm.id, elm.neighbours)
 
 for node in Node.network:
     env.process(node.generate_txn())
     env.process(node.mine_block())
 
-# Node.network[0].
-# env.process(Node.network[0].mine_block())
-# env.process(Node.network[1].mine_block())
-
-env.run(until=508118)
+env.run(until=301180)
 
 # for elm in Node.network:
 #     print(elm.id, len(elm.txn_pool))
@@ -85,8 +81,3 @@ for node_i in range(len(Node.network)):
             pr_str += "\n"
             
             f.write(pr_str)
-
-
-
-# for node in Node.network:
-#     print(node.id, node.balance, node.mining_money)
