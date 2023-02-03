@@ -38,6 +38,7 @@ class Node:
         return queueing_delay + self.prop_delay + (msg_size*8)/(link_speed*1024)
 
     def generate_txn(self):
+        itr=0
         while True:
             txn = str(self.id)+"Hellu"+str(len(self.txn_pool)) #create txn object
             n = len(self.network)
@@ -51,7 +52,10 @@ class Node:
             delay = np.random.exponential(self.txn_time)
             self.env.process(self.broadcast_mssg(None, txn, 'txn')) 
             yield self.env.timeout(delay)
-            break
+            itr+=1
+            if(itr>20):
+                break
+            
             
 
     def mine_block(self):
@@ -92,8 +96,9 @@ class Node:
             #     print(node.blockchain, 'aaaa')
             #     print(node.id, node.blockchain.display_chain())
             # print()
-
+            self.env.process(self.mine_block())
             yield self.env.process(self.broadcast_mssg(None, mined_block, 'block')) 
+            break
 
     def broadcast_mssg(self, prev_node, msg, msg_type):
         mssg_events = list() # list of all send_msg events
@@ -138,9 +143,15 @@ class Node:
                 if(temp_sender.balance >= txn.qty):
                     continue
                 return # block is invalid
+
+            for txn in msg.txns:
+                if(type(txn) is CoinbaseTransaction):
+                    continue
+                self.txn_pool.remove(txn)
             self.blockchain.add_block(msg)
 
-            # print(f"{msg_type} received: {msg.get_hash()} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
+            # print(f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
             # print(re)
             # print(self.blockchain.display_chain())
+            self.env.process(self.mine_block())
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))
