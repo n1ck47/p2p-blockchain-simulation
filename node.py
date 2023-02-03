@@ -8,8 +8,9 @@ from blockchain import Blockchain
 
 class Node:
     network = list()
-    txn_time = 600 # avg interarrival time between each txn generation
-    mining_time = 6000
+    n = 10
+    txn_time = 6000 # avg interarrival time between each txn generation
+    mining_time = 10000
     def __init__(self, id, env, is_fast, cpu_high):
         self.id = id
         self.env = env
@@ -19,17 +20,8 @@ class Node:
         self.neighbours = list()
         self.hashing_power = 0
         self.txn_pool = list()
-        self.utx0 = list()
-        self.stx0 = list()
-        self.initial_balance = 1000
-        self.balance = 1000
-        self.mining_money = 0
+        self.balance = [1000 for i in range(self.n)]
         self.blockchain = Blockchain()
-
-    def update_balance(self):
-        self.balance = self.initial_balance
-        for txn in self.stx0:
-            self.balance -= txn.qty
 
     def compute_delay(self, msg_size, receiver): # msg_size in KB
         link_speed = 5 # in Mbps
@@ -40,24 +32,20 @@ class Node:
         return queueing_delay + self.prop_delay + (msg_size*8)/(link_speed*1024)
 
     def generate_txn(self):
-        itr=0
         while True:
             n = len(self.network)
             receiver_id = self.id
             while(self.id == receiver_id):
                 receiver_id = random.randint(0, n-1)
 
-            # print(receiver_id ,len(self.network))
-            txn = Transaction(100, self, self.network[receiver_id])
+            payment = 50
+            if(payment > self.balance[self.id]):
+                continue
+            txn = Transaction(payment, self, self.network[receiver_id])
             self.txn_pool.append(txn)
             delay = np.random.exponential(self.txn_time)
             self.env.process(self.broadcast_mssg(None, txn, 'txn')) 
             yield self.env.timeout(delay)
-            itr+=1
-            if(itr>20):
-                break
-            
-            
 
     def mine_block(self):
         while True:
@@ -72,31 +60,22 @@ class Node:
             mined_block = Block(parent_block.get_hash(), self.id)
             mined_block.txns.append(CoinbaseTransaction(self.id))
             mined_block.size += 1
-
-            # print(type(mined_block.txns[0]) is CoinbaseTransaction)
             
-            for i in range(len(self.txn_pool)):
-                if(i>=1022 or len(self.txn_pool)==0):
+            itr = 0
+            while(itr < len(self.txn_pool)):
+                if(itr>=1022 or len(self.txn_pool)==0):
                     break
-                mined_block.txns.append(self.txn_pool.pop(0))
+                txn = self.txn_pool.pop(0)
+                if(self.balance[txn.sender_id] < txn.qty):
+                    continue
+                self.balance[txn.sender_id] -= txn.qty
+                self.balance[txn.receiver_id] += txn.qty
+                mined_block.txns.append(txn)
                 mined_block.size += 1
-            # print()
-            # print()
-            # print(f'MINED {mined_block.get_hash()}')
-            self.mining_money += 50
-            # print()
-            # print()
-
-            # for node in self.network:
-            #     print(node.id, node.blockchain.display_chain())
-            # print()
-
+                itr+=1
+    
+            self.balance[self.id] += 50
             self.blockchain.add_block(mined_block)
-
-            # for node in self.network:
-            #     print(node.blockchain, 'aaaa')
-            #     print(node.id, node.blockchain.display_chain())
-            # print()
             self.env.process(self.mine_block())
             yield self.env.process(self.broadcast_mssg(None, mined_block, 'block')) 
             break
@@ -122,16 +101,11 @@ class Node:
         self.env.process(receiver.recv_msg(self, msg, msg_type))
     
     def recv_msg(self,sender, msg, msg_type):
-        
         if(msg_type == 'txn'):
             if msg in self.txn_pool:
                 return
             self.txn_pool.append(msg)
-            if(msg.sender_id == self.id):
-                self.stx0.append(msg)
         elif(msg_type == 'block'):
-            # print(self.id, self.blockchain.display_chain())
-            # print('aaa0', self.blockchain.block_exist(msg, None))
             if msg.miner_id == self.id or self.blockchain.block_exist(msg, None):
                 return
             # Check txns are valid or not
@@ -139,7 +113,7 @@ class Node:
                 if(type(txn) is CoinbaseTransaction):
                     continue
                 temp_sender = self.network[txn.sender_id]
-                if(temp_sender.balance >= txn.qty):
+                if(self.balance[temp_sender.id] >= txn.qty):
                     continue
                 return # block is invalid
 
@@ -148,10 +122,10 @@ class Node:
                     continue
                 if txn in self.txn_pool:
                     self.txn_pool.remove(txn)
+                    self.balance[txn.sender_id] -= txn.qty
+                    self.balance[txn.receiver_id] += txn.qty
+            self.balance[msg.miner_id] += 50
             self.blockchain.add_block(msg)
-
-            # print(f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
-            # print(re)
-            # print(self.blockchain.display_chain())
             self.env.process(self.mine_block())
+        print(f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))
