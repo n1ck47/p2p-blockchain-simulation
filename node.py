@@ -21,9 +21,11 @@ class Node:
         self.txn_pool = list()
         self.utx0 = list()
         self.balance = 1000
+        self.mining_money = 0
         self.blockchain = Blockchain()
 
     def update_balance(self):
+        self.balance = 0
         for txn in self.utx0:
             self.balance += txn.qty
 
@@ -73,11 +75,25 @@ class Node:
                     break
                 mined_block.txns.append(self.txn_pool.pop(0))
                 mined_block.size += 1
+            # print()
+            # print()
+            # print(f'MINED {mined_block.get_hash()}')
+            self.mining_money += 50
+            # print()
+            # print()
+
+            # for node in self.network:
+            #     print(node.id, node.blockchain.display_chain())
+            # print()
 
             self.blockchain.add_block(mined_block)
 
+            # for node in self.network:
+            #     print(node.blockchain, 'aaaa')
+            #     print(node.id, node.blockchain.display_chain())
+            # print()
+
             yield self.env.process(self.broadcast_mssg(None, mined_block, 'block')) 
-            break
 
     def broadcast_mssg(self, prev_node, msg, msg_type):
         mssg_events = list() # list of all send_msg events
@@ -101,6 +117,7 @@ class Node:
         # return delay        
     
     def recv_msg(self,sender, msg, msg_type):
+        
         if(msg_type == 'txn'):
             if msg in self.txn_pool:
                 return
@@ -109,18 +126,21 @@ class Node:
                 self.utx0.append(msg)
                 self.update_balance()
         elif(msg_type == 'block'):
-            if msg.miner_id == self.id:
+            # print(self.id, self.blockchain.display_chain())
+            # print('aaa0', self.blockchain.block_exist(msg, None))
+            if msg.miner_id == self.id or self.blockchain.block_exist(msg, None):
                 return
             # Check txns are valid or not
             for txn in msg.txns:
                 if(type(txn) is CoinbaseTransaction):
                     continue
-                sender = self.network[txn.sender_id]
-                if(sender.balance >= txn.qty):
+                temp_sender = self.network[txn.sender_id]
+                if(temp_sender.balance >= txn.qty):
                     continue
                 return # block is invalid
             self.blockchain.add_block(msg)
 
-        print(f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
-        
+            # print(f"{msg_type} received: {msg.get_hash()} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")
+            # print(re)
+            # print(self.blockchain.display_chain())
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))

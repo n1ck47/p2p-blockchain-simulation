@@ -1,18 +1,21 @@
 from datetime import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID
 from hashlib import sha256
 from txn import Transaction, CoinbaseTransaction
 from exceptions import BlockFullException
 from constants import *
 from enum import Enum
+from copy import deepcopy
 
 class BlockType(Enum):
     normal = "normal"
     genesis = "genesis"
 
 class Block:
-    def __init__(self, prev_hash, miner_id):
+    def __init__(self, prev_hash, miner_id, id=''):
         self.id = uuid4() #
+        if(id!=''):
+            self.id = id
         self.type = BlockType.normal 
         self.timestamp = datetime.now().timestamp()
         self.size = 1 #
@@ -21,8 +24,20 @@ class Block:
         self.prev_hash = prev_hash #
         self.miner_id = miner_id 
         self.children=list() 
+        self.hash = ''
     
+    def get_copy(self):
+        block = Block(self.prev_hash, self.miner_id, self.id)
+        block.timestamp = self.timestamp
+        block.size = self.size
+        block.txns = deepcopy(self.txns)
+        block.children = deepcopy(self.children)
+        block.hash = self.get_hash()
+        return block
+
     def get_hash(self):
+        if(self.hash!=''):
+            return self.hash
         txns_string = ""
         for txn in self.txns:
             txns_string += txn.__str__()
@@ -41,14 +56,13 @@ class Block:
     
 class GenesisBlock:
     def __init__(self):
-        self.id = uuid4()
+        self.id = UUID(int=0)
         self.type = BlockType.genesis
         self.timestamp = datetime.now().timestamp()
-        self.hash = sha256('0'.encode()).hexdigest()
         self.children=list()
 
     def get_hash(self):
-        return self.hash
+        return sha256(str(self.id).encode()).hexdigest()
 
 
     
