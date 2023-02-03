@@ -8,8 +8,8 @@ from blockchain import Blockchain
 
 class Node:
     network = list()
-    txn_time = 60000 # avg interarrival time between each txn generation
-    mining_time = 600000
+    txn_time = 600 # avg interarrival time between each txn generation
+    mining_time = 6000
     def __init__(self, id, env, is_fast, cpu_high):
         self.id = id
         self.env = env
@@ -20,13 +20,16 @@ class Node:
         self.hashing_power = 0
         self.txn_pool = list()
         self.utx0 = list()
+        self.stx0 = list()
+        self.initial_balance = 1000
         self.balance = 1000
         self.mining_money = 0
         self.blockchain = Blockchain()
 
     def update_balance(self):
-        for txn in self.utx0:
-            self.balance += txn.qty
+        self.balance = self.initial_balance
+        for txn in self.stx0:
+            self.balance -= txn.qty
 
     def compute_delay(self, msg_size, receiver): # msg_size in KB
         link_speed = 5 # in Mbps
@@ -73,7 +76,7 @@ class Node:
             # print(type(mined_block.txns[0]) is CoinbaseTransaction)
             
             for i in range(len(self.txn_pool)):
-                if(i>=1022):
+                if(i>=1022 or len(self.txn_pool)==0):
                     break
                 mined_block.txns.append(self.txn_pool.pop(0))
                 mined_block.size += 1
@@ -124,9 +127,8 @@ class Node:
             if msg in self.txn_pool:
                 return
             self.txn_pool.append(msg)
-            if(msg.receiver_id == self.id):
-                self.utx0.append(msg)
-                self.update_balance()
+            if(msg.sender_id == self.id):
+                self.stx0.append(msg)
         elif(msg_type == 'block'):
             # print(self.id, self.blockchain.display_chain())
             # print('aaa0', self.blockchain.block_exist(msg, None))
@@ -144,7 +146,8 @@ class Node:
             for txn in msg.txns:
                 if(type(txn) is CoinbaseTransaction):
                     continue
-                self.txn_pool.remove(txn)
+                if txn in self.txn_pool:
+                    self.txn_pool.remove(txn)
             self.blockchain.add_block(msg)
 
             # print(f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}")

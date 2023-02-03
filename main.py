@@ -61,7 +61,7 @@ for node in Node.network:
 # env.process(Node.network[0].mine_block())
 # env.process(Node.network[1].mine_block())
 
-env.run(until=30811853)
+env.run(until=308118)
 
 # for elm in Node.network:
 #     print(elm.id, len(elm.txn_pool))
