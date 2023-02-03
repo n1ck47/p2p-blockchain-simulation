@@ -50,15 +50,25 @@ z1 = 0.4 # Fraction of low cpu peers
 Node.network = initialize_nodes(n, z0, z1)
 finalise_network(n,Node.network) # connects the peers 
 
+for elm in Node.network:
+    print(elm.neighbours)
+
 for node in Node.network:
     env.process(node.generate_txn())
+    env.process(node.mine_block())
 
 # Node.network[0].
-env.process(Node.network[0].mine_block())
-env.run()
+# env.process(Node.network[0].mine_block())
+# env.process(Node.network[1].mine_block())
+
+env.run(until=328118532)
 
 # for elm in Node.network:
 #     print(elm.neighbours, elm.txn_pool, len(elm.txn_pool))
 
-# for node in Node.network:
-#     print(node.balance)
+for node in Node.network:
+    print(node.id, len(node.blockchain.display_chain()))
+
+
+for node in Node.network:
+    print(node.balance, node.mining_money)
