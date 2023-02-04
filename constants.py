@@ -2,3 +2,5 @@ MINING_FEE = 50
 TXN_SIZE = 1
 TXN_FEE = 0
 BLOCK_SIZE = 1023
+TREE_OUTPUT_DIR = "node_blockchain_trees"
+TREE_OUTPUT_FILE_PREFIX = "tree_node_"

@@ -2,6 +2,8 @@ import simpy
 from node import Node
 from network import finalise_network
 import numpy as np
+from pathlib import Path
+from constants import *
 
 def initialize_nodes(n, z0, z1):
     network = list()
@@ -62,8 +64,20 @@ env.run(until=301180)
 # for elm in Node.network:
 #     print(elm.id, len(elm.txn_pool))
 
-# for node in Node.network:
-#     print(node.id, len(node.blockchain.display_chain()))
+for node_i in range(len(Node.network)):
+    node = Node.network[node_i]
+    print(node.id, len(node.blockchain.display_chain()))
 
-# for node in Node.network:
-#     print(node.id, node.balance, sum(node.balance))
+    Path(TREE_OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+    adj = node.blockchain.get_blockchain_tree()
+
+    with open(f'{TREE_OUTPUT_DIR}/{TREE_OUTPUT_FILE_PREFIX}{node_i}.txt', 'w') as f:
+        for i in adj:
+
+            pr_str = i
+            for j in adj[i]:
+                pr_str += f" {j}"
+            
+            pr_str += "\n"
+            
+            f.write(pr_str)
