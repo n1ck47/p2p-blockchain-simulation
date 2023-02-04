@@ -1,12 +1,15 @@
-from uuid import uuid4
 from datetime import datetime
-from constants import *
 from enum import Enum
+from uuid import uuid4
+
+from constants import *
 from node import *
+
 
 class TxnType(Enum):
     normal = "normal"
     coinbase = "coinbase"
+
 
 class Transaction:
     def __init__(self, qty, sender, receiver):
