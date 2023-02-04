@@ -1,7 +1,9 @@
-from treelib import Node, Tree
-import pydot
-from constants import *
 import os
+
+import pydot
+from treelib import Tree
+
+from constants import *
 
 for fname in os.listdir(TREE_OUTPUT_DIR):
     tree = Tree()
@@ -26,7 +28,3 @@ for fname in os.listdir(TREE_OUTPUT_DIR):
 
     output_fname = fname.split(".")[0] + ".png"
     dot[0].write_png(f"{TREE_OUTPUT_DIR}/{output_fname}")
-
-
-
-
