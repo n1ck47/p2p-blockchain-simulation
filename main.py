@@ -50,7 +50,7 @@ def set_hashing_power(low_cpu_peers, high_cpu_peers, network):
             network[i].hashing_power = low_hash_power
 
 
-def main(n, z0, z1, txn_time, mining_time):
+def main(n, z0, z1, txn_time, mining_time, simulation_until):
 
     env = simpy.Environment()
 
@@ -64,7 +64,7 @@ def main(n, z0, z1, txn_time, mining_time):
         env.process(node.generate_txn())
         env.process(node.mine_block())
 
-    env.run(until=191180)
+    env.run(until=simulation_until)
 
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
@@ -88,14 +88,15 @@ def main(n, z0, z1, txn_time, mining_time):
 if __name__ == "__main__":
     args = len(sys.argv)
 
-    if args < 6 or args > 6:
+    if args < 7 or args > 7:
         print(
             "Provide 5 arguments:\n"
             "No. of nodes\n"
             "Fraction of slow peers\n"
             "Fraction of low cpu peers\n"
             "Transaction time in ms\n"
-            "Mining time in ms"
+            "Mining time in ms\n"
+            "Simulation time units"
         )
         exit(1)
 
@@ -104,5 +105,6 @@ if __name__ == "__main__":
     z1 = float(sys.argv[3])  # fraction of low cpu peers
     txn_time = int(sys.argv[4])  # transaction time (interarrival time) in ms
     mining_time = int(sys.argv[5])  # mining time in ms
+    simulation_until = int(sys.argv[6])
 
-    main(n, z0, z1, txn_time, mining_time)
+    main(n, z0, z1, txn_time, mining_time, simulation_until)

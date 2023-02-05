@@ -37,7 +37,7 @@ The project is divided into 9 files, details as follows:
 ## Execution
 The main file can be executed as:
 ```
-(.venv)$ python main.py <n> <z0> <z1> <txn_time> <mining_time>
+(.venv)$ python main.py <n> <z0> <z1> <txn_time> <mining_time> <simulation_until>
 ```
 
 The folder path where blockchain trees of all nodes will be stored after the simulation is available in `constants.py` file in constant `TREE_OUTPUT_DIR`.  
