@@ -6,6 +6,9 @@ from treelib import Tree
 from constants import *
 
 for fname in os.listdir(TREE_OUTPUT_DIR):
+    if TREE_OUTPUT_FILE_PREFIX in fname and "txt" not in fname:
+        continue
+
     tree = Tree()
     with open(f"{TREE_OUTPUT_DIR}/{fname}") as f:
         lines = [i.strip() for i in f.readlines()]
