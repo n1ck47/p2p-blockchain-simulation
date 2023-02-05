@@ -64,7 +64,7 @@ def main(n, z0, z1, txn_time, mining_time):
         env.process(node.generate_txn())
         env.process(node.mine_block())
 
-    env.run(until=301180)
+    env.run(until=191180)
 
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]

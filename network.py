@@ -2,6 +2,7 @@ import random
 
 
 def create_network(network, next_elms, que):
+
     visited = [False for i in range(len(network))]
 
     while que:
@@ -54,8 +55,18 @@ def is_connected(network):
             return False
     return True
 
+def reset_network(network):
+    for i in range(len(network)):
+        network[i].neighbours.clear()
+
+def check_links(network):
+    for node in network:
+        if(len(node.neighbours)<4):
+            return False
+    return True
 
 def finalise_network(n, network):
-    while not is_connected(network):
+    while not is_connected(network) or not check_links(network):
         nodes = [i for i in range(n)]
+        reset_network(network)
         create_network(network, nodes, [0])

@@ -38,6 +38,7 @@ class Node:
         return queueing_delay + self.prop_delay + (msg_size * 8) / (link_speed * 1024)
 
     def generate_txn(self):
+        itr=0
         while True:
             if self.balance[self.id] == 0:
                 continue
@@ -56,6 +57,9 @@ class Node:
             delay = np.random.exponential(self.txn_time)
             self.env.process(self.broadcast_mssg(None, txn, "txn"))
             yield self.env.timeout(delay)
+            itr+=1
+            if(itr>40):
+                break
 
     def mine_block(self):
         while True:
@@ -127,25 +131,19 @@ class Node:
                 return
 
             # Check txns are valid or not
+            temp_balance = self.balance.copy()
             for txn in msg.txns:
                 if type(txn) is CoinbaseTransaction:
                     continue
 
-                temp_sender = self.network[txn.sender_id]
-                if self.balance[temp_sender.id] >= txn.qty:
+                if temp_balance[txn.sender_id] >= txn.qty:
+                    temp_balance[txn.sender_id] -= txn.qty
+                    temp_balance[txn.receiver_id] += txn.qty
                     continue
 
                 return  # block is invalid
 
-            for txn in msg.txns:
-                if type(txn) is CoinbaseTransaction:
-                    continue
-
-                if txn in self.txn_pool:
-                    self.txn_pool.remove(txn)
-                    self.balance[txn.sender_id] -= txn.qty
-                    self.balance[txn.receiver_id] += txn.qty
-
+            self.balance = temp_balance.copy()
             self.balance[msg.miner_id] += 50
             self.blockchain.add_block(msg)
             self.env.process(self.mine_block())
