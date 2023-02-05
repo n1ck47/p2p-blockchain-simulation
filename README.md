@@ -29,6 +29,10 @@ The project is divided into 9 files, details as follows:
     ```
     (.venv)$ pip install -r requirements.txt
     ```
+5. Install `graphviz` using:
+    ```
+    $ sudo apt-get install graphviz
+    ```
 
 ## Execution
 The main file can be executed as:
