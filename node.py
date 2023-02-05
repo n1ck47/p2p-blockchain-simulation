@@ -47,8 +47,7 @@ class Node:
             while self.id == receiver_id:
                 receiver_id = random.randint(0, n - 1)
 
-            # payment = random.randint(1, self.balance[self.id] * 2)
-            payment = 50
+            payment = random.randint(1, self.balance[self.id] * 2)
             if payment > self.balance[self.id]:
                 continue
 
