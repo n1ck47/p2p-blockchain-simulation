@@ -27,7 +27,7 @@ class Node:
         self.txn_time = txn_time
         self.mining_time = mining_time
         self.balance = [NODE_STARTING_BALANCE for i in range(self.n)]
-        self.blockchain = Blockchain()
+        self.blockchain = Blockchain(n)
 
     def compute_delay(self, msg_size, receiver):  # msg_size in KB
         link_speed = SLOW_LINK_SPEED  # in Mbps
@@ -74,24 +74,34 @@ class Node:
 
             mined_block = Block(parent_block.get_hash(), self.id)
             mined_block.txns.append(CoinbaseTransaction(self.id))
+            mined_block.balance = parent_block.balance.copy()
             mined_block.size += 1
 
+            if(len(mined_block.balance) == 0 or len(parent_block.balance)==0):
+                print(parent_block.get_hash())
+                print(self.blockchain.display_chain())
+                print('mine', len(mined_block.balance), len(parent_block.balance))
             itr = 0
             while itr < len(self.txn_pool):
                 if itr >= 1022 or len(self.txn_pool) == 0:
                     break
 
                 txn = self.txn_pool.pop(0)
-                if self.balance[txn.sender_id] < txn.qty:
+                # print('mine', len(mined_block.balance), len(parent_block.balance))
+                if mined_block.balance[txn.sender_id] < txn.qty:
                     continue
 
-                self.balance[txn.sender_id] -= txn.qty
-                self.balance[txn.receiver_id] += txn.qty
+                mined_block.balance[txn.sender_id] -= txn.qty
                 mined_block.txns.append(txn)
                 mined_block.size += 1
                 itr += 1
 
-            self.balance[self.id] += 50
+            for txn in mined_block.txns:
+                if type(txn) is CoinbaseTransaction:
+                    mined_block.balance[self.id] += txn.fee
+                else:
+                    mined_block.balance[txn.receiver_id] += txn.qty
+
             self.blockchain.add_block(mined_block)
             self.env.process(self.mine_block())
 
@@ -130,25 +140,38 @@ class Node:
             if msg.miner_id == self.id or self.blockchain.block_exist(msg, None):
                 return
 
+            mined_block = msg.get_copy()
+            parent_block = self.blockchain.find_prev_block(self.blockchain.genesis, mined_block.prev_hash)
+
+            # print(parent_block, self.blockchain.display_chain(), mined_block.prev_hash)
             # Check txns are valid or not
-            temp_balance = self.balance.copy()
-            for txn in msg.txns:
+            true_balance = parent_block.balance.copy()
+            for txn in mined_block.txns:
                 if type(txn) is CoinbaseTransaction:
                     continue
 
-                if temp_balance[txn.sender_id] >= txn.qty:
-                    temp_balance[txn.sender_id] -= txn.qty
-                    temp_balance[txn.receiver_id] += txn.qty
+                if true_balance[txn.sender_id] >= txn.qty:
+                    true_balance[txn.sender_id] -= txn.qty
                     continue
 
                 return  # block is invalid
 
-            self.balance = temp_balance.copy()
-            self.balance[msg.miner_id] += 50
-            self.blockchain.add_block(msg)
+            for txn in mined_block.txns:
+                if type(txn) is CoinbaseTransaction:
+                    true_balance[txn.miner_id] += txn.fee
+                else:
+                    true_balance[txn.receiver_id] += txn.qty
+                    continue
+
+            for i in range(len(true_balance)):
+                if mined_block.balance[i] == true_balance[i]:
+                    continue 
+                return
+
+            self.blockchain.add_block(mined_block)
             self.env.process(self.mine_block())
 
-        print(
-            f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}"
-        )
+        # print(
+        #     f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}"
+        # )
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))

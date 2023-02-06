@@ -28,12 +28,14 @@ class Block:
         self.miner_id = miner_id
         self.children = list()
         self.hash = ""
+        self.balance = list()
 
     def get_copy(self):
         block = Block(self.prev_hash, self.miner_id, self.id)
         block.timestamp = self.timestamp
         block.size = self.size
         block.txns = deepcopy(self.txns)
+        block.balance = deepcopy(self.balance)
         block.children = deepcopy(self.children)
         block.hash = self.get_hash()
         return block
@@ -61,11 +63,12 @@ class Block:
 
 
 class GenesisBlock:
-    def __init__(self):
+    def __init__(self, n):
         self.id = UUID(int=0)
         self.type = BlockType.genesis
         self.timestamp = datetime.now().timestamp()
         self.children = list()
+        self.balance = [NODE_STARTING_BALANCE]*n
 
     def get_hash(self):
         return sha256(str(self.id).encode()).hexdigest()

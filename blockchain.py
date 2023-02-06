@@ -4,8 +4,8 @@ from block import GenesisBlock
 
 
 class Blockchain:
-    def __init__(self):
-        self.genesis = GenesisBlock()
+    def __init__(self, n):
+        self.genesis = GenesisBlock(n)
         self.total = 1
 
     def height(self, node):
@@ -54,6 +54,9 @@ class Blockchain:
         if current_block is None:
             current_block = self.genesis
 
+        if block is None:
+            return None
+            
         if block.get_hash() == current_block.get_hash():
             return True
 

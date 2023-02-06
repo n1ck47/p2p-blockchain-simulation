@@ -68,7 +68,7 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
 
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
-        print(node.id, len(node.blockchain.display_chain()), node.balance)
+        print(node.id, len(node.blockchain.display_chain()), node.blockchain.get_last_block().balance)
         Path(TREE_OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
         adj = node.blockchain.get_blockchain_tree()
 
