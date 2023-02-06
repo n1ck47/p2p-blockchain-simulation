@@ -16,7 +16,7 @@ class BlockType(Enum):
 
 class Block:
     def __init__(self, prev_hash, miner_id, id=""):
-        self.id = uuid4()  #
+        self.id = str(uuid4())  #
         if id != "":
             self.id = id
         self.type = BlockType.normal
@@ -28,6 +28,7 @@ class Block:
         self.miner_id = miner_id
         self.children = list()
         self.hash = ""
+        self.txn_hash = ""
         self.balance = list()
 
     def get_copy(self):
@@ -43,12 +44,15 @@ class Block:
     def get_hash(self):
         if self.hash != "":
             return self.hash
-        txns_string = ""
-        for txn in self.txns:
-            txns_string += txn.__str__()
-        return sha256(
-            str(self.id).encode() + self.prev_hash.encode() + txns_string.encode()
+        if self.txn_hash == "":
+            txns_string = ""
+            for txn in self.txns:
+                txns_string += txn.__str__()
+            self.txn_hash = sha256(txns_string.encode()).hexdigest()
+        self.hash =  sha256(
+            str(self.id).encode() + self.prev_hash.encode() + self.txn_hash.encode()
         ).hexdigest()
+        return self.hash
 
     def add_txn(self, txn):
         self.txn_fees += txn.txn_fees

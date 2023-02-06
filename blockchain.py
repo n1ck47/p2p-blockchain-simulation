@@ -56,7 +56,7 @@ class Blockchain:
 
         if block is None:
             return None
-            
+
         if block.get_hash() == current_block.get_hash():
             return True
 
@@ -76,7 +76,7 @@ class Blockchain:
             return (1 + max_height, [node] + last_block)
 
     def display_chain(self):
-        return [node.get_hash() for node in self.all_nodes_in_chain(self.genesis)[1]]
+        return [(node.id, node.get_hash()) for node in self.all_nodes_in_chain(self.genesis)[1]]
 
     def get_blockchain_tree(self):
         adjancency_list = {}

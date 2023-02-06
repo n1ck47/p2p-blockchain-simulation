@@ -28,6 +28,8 @@ class Node:
         self.mining_time = mining_time
         self.balance = [NODE_STARTING_BALANCE for i in range(self.n)]
         self.blockchain = Blockchain(n)
+        self.pending_blocks = dict()
+        self.invalid_blocks = dict()
 
     def compute_delay(self, msg_size, receiver):  # msg_size in KB
         link_speed = SLOW_LINK_SPEED  # in Mbps
@@ -130,6 +132,35 @@ class Node:
         yield self.env.timeout(delay)
         self.env.process(receiver.recv_msg(self, msg, msg_type))
 
+    def check_add_block(self, mined_block, parent_block):
+        true_balance = parent_block.balance.copy()
+        for txn in mined_block.txns:
+            if type(txn) is CoinbaseTransaction:
+                continue
+
+            if true_balance[txn.sender_id] >= txn.qty:
+                true_balance[txn.sender_id] -= txn.qty
+                continue
+
+            self.invalid_blocks[mined_block.get_hash()] = True
+            return  "invalid" # block is invalid
+
+        for txn in mined_block.txns:
+            if type(txn) is CoinbaseTransaction:
+                true_balance[txn.miner_id] += txn.fee
+            else:
+                true_balance[txn.receiver_id] += txn.qty
+
+        for i in range(len(true_balance)):
+            if mined_block.balance[i] == true_balance[i]:
+                continue 
+            self.invalid_blocks[mined_block.get_hash()] = True
+            return "invalid"
+
+        self.blockchain.add_block(mined_block)
+        self.env.process(self.mine_block())
+        return "valid"
+
     def recv_msg(self, sender, msg, msg_type):
         if msg_type == "txn":
             if msg in self.txn_pool:
@@ -137,41 +168,28 @@ class Node:
 
             self.txn_pool.append(msg)
         elif msg_type == "block":
-            if msg.miner_id == self.id or self.blockchain.block_exist(msg, None):
+            # print(msg.id, msg.get_hash(), self.blockchain.block_exist(msg, None))
+            # print(self.blockchain.display_chain())
+            if msg.miner_id == self.id or (msg.get_hash() in self.invalid_blocks) or self.blockchain.block_exist(msg, None) or msg in self.pending_blocks:
                 return
 
-            mined_block = msg.get_copy()
-            parent_block = self.blockchain.find_prev_block(self.blockchain.genesis, mined_block.prev_hash)
+            parent_block = self.blockchain.find_prev_block(self.blockchain.genesis, msg.prev_hash)
 
-            # print(parent_block, self.blockchain.display_chain(), mined_block.prev_hash)
-            # Check txns are valid or not
-            true_balance = parent_block.balance.copy()
-            for txn in mined_block.txns:
-                if type(txn) is CoinbaseTransaction:
-                    continue
+            if parent_block is None:
+                self.pending_blocks[msg.prev_hash] = msg
+            else:
+                mined_block = msg.get_copy()
 
-                if true_balance[txn.sender_id] >= txn.qty:
-                    true_balance[txn.sender_id] -= txn.qty
-                    continue
+                # Check txns are valid or not
+                if(self.check_add_block(msg.get_copy(), parent_block) == "invalid"):
+                    return
+            # print('b')
+            if msg.get_hash() in self.pending_blocks:
+                parent_block = self.pending_blocks.pop(msg.get_hash())
 
-                return  # block is invalid
+                self.check_add_block(msg.get_copy(), parent_block)
 
-            for txn in mined_block.txns:
-                if type(txn) is CoinbaseTransaction:
-                    true_balance[txn.miner_id] += txn.fee
-                else:
-                    true_balance[txn.receiver_id] += txn.qty
-                    continue
-
-            for i in range(len(true_balance)):
-                if mined_block.balance[i] == true_balance[i]:
-                    continue 
-                return
-
-            self.blockchain.add_block(mined_block)
-            self.env.process(self.mine_block())
-
-        # print(
-        #     f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}"
-        # )
+        print(
+            f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}"
+        )
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))
