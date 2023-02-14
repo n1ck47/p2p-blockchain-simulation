@@ -30,6 +30,7 @@ class Node:
         self.blockchain = Blockchain(self.env, n)
         self.pending_blocks = dict()
         self.invalid_blocks = dict()
+        self.count_block_generated = 0
 
     def compute_delay(self, msg_size, receiver):  # msg_size in KB
         link_speed = SLOW_LINK_SPEED  # in Mbps
@@ -103,8 +104,9 @@ class Node:
                     mined_block.balance[self.id] += txn.fee
                 else:
                     mined_block.balance[txn.receiver_id] += txn.qty
-
+            
             self.blockchain.add_block(mined_block)
+            self.count_block_generated += 1
             self.env.process(self.mine_block())
 
             yield self.env.process(self.broadcast_mssg(None, mined_block, "block"))

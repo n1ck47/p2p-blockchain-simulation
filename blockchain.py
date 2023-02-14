@@ -78,6 +78,16 @@ class Blockchain:
     def display_chain(self):
         return [(node.id, node.get_hash()) for node in self.all_nodes_in_chain(self.genesis)[1]]
 
+    def count_mined_block(self, node_id):
+        longest_chain = self.all_nodes_in_chain(self.genesis)[1]
+        count = 0
+        for block in longest_chain:
+            if type(block) is GenesisBlock:
+                continue
+            if node_id == block.miner_id:
+                count+=1
+        return count
+
     def get_blockchain_tree(self):
         adjancency_list = {}
         block = self.genesis
