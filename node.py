@@ -27,7 +27,7 @@ class Node:
         self.txn_time = txn_time
         self.mining_time = mining_time
         self.balance = [NODE_STARTING_BALANCE for i in range(self.n)]
-        self.blockchain = Blockchain(n)
+        self.blockchain = Blockchain(self.env, n)
         self.pending_blocks = dict()
         self.invalid_blocks = dict()
 
@@ -54,14 +54,14 @@ class Node:
             if payment > self.balance[self.id]:
                 continue
 
-            txn = Transaction(payment, self, self.network[receiver_id])
+            txn = Transaction(self.env, payment, self, self.network[receiver_id])
             self.txn_pool.append(txn)
             delay = np.random.exponential(self.txn_time)
             self.env.process(self.broadcast_mssg(None, txn, "txn"))
             yield self.env.timeout(delay)
             itr+=1
-            if(itr>40):
-                break
+            # if(itr>40):
+            #     break
 
     def mine_block(self):
         while True:
@@ -74,8 +74,8 @@ class Node:
             if parent_block.get_hash() != current_parent_block.get_hash():
                 continue
 
-            mined_block = Block(parent_block.get_hash(), self.id)
-            mined_block.txns.append(CoinbaseTransaction(self.id))
+            mined_block = Block(self.env, parent_block.get_hash(), self.id)
+            mined_block.txns.append(CoinbaseTransaction(self.env, self.id))
             mined_block.balance = parent_block.balance.copy()
             mined_block.size += 1
 
@@ -177,19 +177,21 @@ class Node:
 
             if parent_block is None:
                 self.pending_blocks[msg.prev_hash] = msg
+                print(msg)
             else:
                 mined_block = msg.get_copy()
 
                 # Check txns are valid or not
-                if(self.check_add_block(msg.get_copy(), parent_block) == "invalid"):
+                if(self.check_add_block(mined_block, parent_block) == "invalid"):
                     return
-            # print('b')
-            if msg.get_hash() in self.pending_blocks:
-                parent_block = self.pending_blocks.pop(msg.get_hash())
+                # print('b')
 
-                self.check_add_block(msg.get_copy(), parent_block)
+                if msg.get_hash() in self.pending_blocks:
+                    child_block = self.pending_blocks.pop(msg.get_hash())
+                    parent_block = self.blockchain.find_prev_block(self.blockchain.genesis, child_block.prev_hash)
+                    self.check_add_block(child_block.get_copy(), parent_block)
 
         print(
-            f"{msg_type} received: {msg} Time: {self.env.now} Sender: {sender.id} Receiver: {self.id}"
+            f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
         )
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))

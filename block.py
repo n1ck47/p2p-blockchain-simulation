@@ -15,12 +15,12 @@ class BlockType(Enum):
 
 
 class Block:
-    def __init__(self, prev_hash, miner_id, id=""):
+    def __init__(self, env, prev_hash, miner_id, id=""):
         self.id = str(uuid4())  #
         if id != "":
             self.id = id
         self.type = BlockType.normal
-        self.timestamp = datetime.now().timestamp()
+        self.timestamp = env.now
         self.size = 1  #
         self.txn_fees = 0
         self.txns = []  #
@@ -29,10 +29,11 @@ class Block:
         self.children = list()
         self.hash = ""
         self.txn_hash = ""
+        self.env = env
         self.balance = list()
 
     def get_copy(self):
-        block = Block(self.prev_hash, self.miner_id, self.id)
+        block = Block(self.env, self.prev_hash, self.miner_id, self.id)
         block.timestamp = self.timestamp
         block.size = self.size
         block.txns = deepcopy(self.txns)
@@ -67,10 +68,10 @@ class Block:
 
 
 class GenesisBlock:
-    def __init__(self, n):
+    def __init__(self, env, n):
         self.id = UUID(int=0)
         self.type = BlockType.genesis
-        self.timestamp = datetime.now().timestamp()
+        self.timestamp = env.now
         self.children = list()
         self.balance = [NODE_STARTING_BALANCE]*n
 

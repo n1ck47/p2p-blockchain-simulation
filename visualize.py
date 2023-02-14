@@ -5,7 +5,14 @@ from treelib import Tree
 
 from constants import *
 
+files = []
+
 for fname in os.listdir(TREE_OUTPUT_DIR):
+    files.append(fname)
+    
+files.sort()
+
+for fname in files:
     if TREE_OUTPUT_FILE_PREFIX in fname and "txt" not in fname:
         continue
     print(f"Visualizing :: {fname}")

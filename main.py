@@ -1,12 +1,15 @@
 import sys
-from pathlib import Path
-
+import shutil
 import numpy as np
 import simpy
 
 from constants import *
 from network import finalise_network
 from node import Node
+
+import os
+import sys
+sys.setrecursionlimit(100000)
 
 
 def initialize_nodes(n, z0, z1, env, txn_time, mining_time):
@@ -66,10 +69,14 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
 
     env.run(until=simulation_until)
 
+    if os.path.exists(TREE_OUTPUT_DIR):
+        shutil.rmtree(TREE_OUTPUT_DIR)
+    os.mkdir(TREE_OUTPUT_DIR)
+
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
         print(node.id, len(node.blockchain.display_chain()), len(node.pending_blocks),node.blockchain.get_last_block().balance)
-        Path(TREE_OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+        
         adj = node.blockchain.get_blockchain_tree()
 
         with open(f"{TREE_OUTPUT_DIR}/{TREE_OUTPUT_FILE_PREFIX}{node_i}.txt", "w") as f:

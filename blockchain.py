@@ -4,8 +4,8 @@ from block import GenesisBlock
 
 
 class Blockchain:
-    def __init__(self, n):
-        self.genesis = GenesisBlock(n)
+    def __init__(self, env, n):
+        self.genesis = GenesisBlock(env, n)
         self.total = 1
 
     def height(self, node):

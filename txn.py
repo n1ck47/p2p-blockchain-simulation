@@ -12,14 +12,14 @@ class TxnType(Enum):
 
 
 class Transaction:
-    def __init__(self, qty, sender, receiver):
+    def __init__(self, env, qty, sender, receiver):
         self.id = uuid4()
         self.type = TxnType.normal
         self.qty = qty
         self.sender_id = sender.id
         self.receiver_id = receiver.id
         self.size = TXN_SIZE
-        self.timestamp = datetime.now().timestamp()
+        self.timestamp = env.now
         self.txn_fees = TXN_FEE
 
     def __str__(self):
@@ -37,8 +37,9 @@ class Transaction:
 
 
 class CoinbaseTransaction:
-    def __init__(self, miner_id):
+    def __init__(self, env, miner_id):
         self.id = uuid4()
         self.type = TxnType.coinbase
         self.fee = MINING_FEE
         self.miner_id = miner_id
+        self.timestamp = env.now
