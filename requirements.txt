@@ -2,5 +2,5 @@ simpy
 numpy
 pydot
 graphviz
-treelib
 tabulate
+treelib
