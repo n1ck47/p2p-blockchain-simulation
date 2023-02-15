@@ -67,6 +67,7 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
 
     for node in Node.network:
         env.process(node.generate_txn())
+        node.is_gen_txn = True
         env.process(node.mine_block())
 
     env.run(until=simulation_until)
