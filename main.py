@@ -78,6 +78,8 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
 
     output = list()
     total_blocks_gen = 0
+
+    # Formatting and saving trees of all nodes in txt files
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
 
