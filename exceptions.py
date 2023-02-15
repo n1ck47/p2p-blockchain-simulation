@@ -1,0 +1,2 @@
+class BlockFullException(Exception):
+    pass

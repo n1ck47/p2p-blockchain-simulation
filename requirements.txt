@@ -1,0 +1,6 @@
+simpy
+numpy
+pydot
+graphviz
+tabulate
+treelib
