@@ -2,6 +2,8 @@ import sys
 import shutil
 import numpy as np
 import simpy
+from tabulate import tabulate
+
 
 from constants import *
 from network import finalise_network
@@ -60,8 +62,8 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
     Node.network = initialize_nodes(n, z0, z1, env, txn_time, mining_time)
     finalise_network(n, Node.network)  # connects the peers
 
-    for elm in Node.network:
-        print(elm.id, elm.neighbours)
+    # for elm in Node.network:
+    #     print(elm.id, elm.neighbours)
 
     for node in Node.network:
         env.process(node.generate_txn())
@@ -73,12 +75,17 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
         shutil.rmtree(TREE_OUTPUT_DIR)
     os.mkdir(TREE_OUTPUT_DIR)
 
+    output = list()
+    total_blocks_gen = 0
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
         # print(node.id, len(node.blockchain.display_chain()), len(node.pending_blocks),node.blockchain.get_last_block().balance)
         
-        print(f'Node: {node.id}, Mined Blocks(Chain/Generated): {node.blockchain.count_mined_block(node.id)}/{node.count_block_generated}, Total Blocks: {len(node.blockchain.display_chain())}, Fast?: {node.is_fast}, Cpu High?: {node.cpu_high} Balance: {sum(node.blockchain.get_last_block().balance)}')
+        # print(f'Node: {node.id}, Mined Blocks(Chain/Generated): {node.blockchain.count_mined_block(node.id)}/{node.count_block_generated}, Total Blocks: {len(node.blockchain.display_chain())}, Fast?: {node.is_fast}, Cpu High?: {node.cpu_high} Balance: {sum(node.blockchain.get_last_block().balance)}')
 
+        output.append([node.id, str(node.blockchain.count_mined_block(node.id))+":"+str(node.count_block_generated), len(node.blockchain.display_chain()), node.is_fast, node.cpu_high])
+
+        total_blocks_gen += node.count_block_generated
         adj = node.blockchain.get_blockchain_tree()
 
         with open(f"{TREE_OUTPUT_DIR}/{TREE_OUTPUT_FILE_PREFIX}{node_i}.txt", "w") as f:
@@ -91,6 +98,14 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until):
                 pr_str += "\n"
 
                 f.write(pr_str)
+
+    header = ["Node", " Mined Blocks(Chain:Generated)", "Total Blocks", "Fast?", "Cpu High?"]
+    
+    print()
+    print(tabulate(output, headers=header, tablefmt="grid"))
+    print(f"Total block generated: {total_blocks_gen}")
+    print()
+
 
 if __name__ == "__main__":
     args = len(sys.argv)

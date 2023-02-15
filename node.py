@@ -193,7 +193,7 @@ class Node:
                     parent_block = self.blockchain.find_prev_block(self.blockchain.genesis, child_block.prev_hash)
                     self.check_add_block(child_block.get_copy(), parent_block)
 
-        print(
-            f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
-        )
+        # print(
+        #     f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
+        # )
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type))
