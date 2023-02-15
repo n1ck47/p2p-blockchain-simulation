@@ -52,7 +52,7 @@ class Block:         #Class to create blocks
             self.txn_hash = sha256(txns_string.encode()).hexdigest()
         self.hash =  sha256(
             str(self.id).encode() + self.prev_hash.encode() + self.txn_hash.encode()
-        ).hexdigest()
+        ).hexdigest()                       #hash of block is generated using block id ,parent hash and transaction hash
         return self.hash
 
     def add_txn(self, txn):         #This method adds transaction in the block
@@ -63,7 +63,7 @@ class Block:         #Class to create blocks
             raise BlockFullException("Block is full")
 
     def prepare_block(self):
-        coinbase_txn = CoinbaseTransaction(self.miner_id, self.txn_fees)
+        coinbase_txn = CoinbaseTransaction(self.miner_id, self.txn_fees)       #Block will be prepared and coinbase transaction added to each block
         self.txns[:0] = coinbase_txn
 
 

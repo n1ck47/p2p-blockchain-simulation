@@ -22,7 +22,7 @@ class Transaction:              #Class for generating transaction
         self.timestamp = env.now
         self.txn_fees = TXN_FEE
 
-    def __str__(self):
+    def __str__(self):                  #If we print transaction object than this method gets invoked
         string = (
             str(self.id)
             + ": "
