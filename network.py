@@ -1,21 +1,21 @@
 import random
 
-
+# connect the nodes
 def create_network(network, next_elms, que):
 
     visited = [False for i in range(len(network))]
 
     while que:
-        links = random.randint(4, 8)
-        next_elms = random.sample(next_elms, len(next_elms))
+        links = random.randint(4, 8) # set a random no of neighbors for a particular node
+        next_elms = random.sample(next_elms, len(next_elms)) # randomize the nodes to which the node can connect to
         u = que.pop(0)
         visited[u] = True
         next_elms.remove(u)
-        size = links - len(network[u].neighbours)
+        size = links - len(network[u].neighbours) # how many new neighbours can be added
         start = len(network[u].neighbours)
 
         i = 0
-        while next_elms:
+        while next_elms: # connect node to the nodes in next_elms(randomized)
             if i >= len(next_elms):
                 break
 
@@ -34,11 +34,10 @@ def create_network(network, next_elms, que):
             else:
                 break
 
-        for i in range(start, len(network[u].neighbours)):
+        for i in range(start, len(network[u].neighbours)): # Add the neighbours to the queue to do the same procedure as done above
             if not visited[network[u].neighbours[i]]:
                 que.append(network[u].neighbours[i])
                 visited[network[u].neighbours[i]] = True
-
 
 def dfs(u, network, visited):
     visited[u] = True
@@ -46,8 +45,7 @@ def dfs(u, network, visited):
         if not visited[elm]:
             dfs(elm, network, visited)
 
-
-def is_connected(network):
+def is_connected(network): # check if the network is connected or not using DFS
     visited = [False for i in range(len(network))]
     dfs(0, network, visited)
     for i in range(len(visited)):
@@ -55,16 +53,17 @@ def is_connected(network):
             return False
     return True
 
-def reset_network(network):
+def reset_network(network): # remove each and every links from the network
     for i in range(len(network)):
         network[i].neighbours.clear()
 
-def check_links(network):
+def check_links(network): # check if no of neighbours of a node is atleast 4
     for node in network:
         if(len(node.neighbours)<4):
             return False
     return True
 
+# run create network till its connected and no of links are atleast 4 for each node
 def finalise_network(n, network):
     while not is_connected(network) or not check_links(network):
         nodes = [i for i in range(n)]
