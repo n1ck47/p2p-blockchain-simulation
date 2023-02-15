@@ -14,7 +14,7 @@ class BlockType(Enum):
     genesis = "genesis"
 
 
-class Block:
+class Block:         #Class to create blocks
     def __init__(self, env, prev_hash, miner_id, id=""):
         self.id = str(uuid4())  #
         if id != "":
@@ -32,7 +32,7 @@ class Block:
         self.env = env
         self.balance = list()
 
-    def get_copy(self):
+    def get_copy(self):       #Method to get the copy of the block
         block = Block(self.env, self.prev_hash, self.miner_id, self.id)
         block.timestamp = self.timestamp
         block.size = self.size
@@ -42,7 +42,7 @@ class Block:
         block.hash = self.get_hash()
         return block
 
-    def get_hash(self):
+    def get_hash(self):         #This method returns the hash of the block
         if self.hash != "":
             return self.hash
         if self.txn_hash == "":
@@ -55,7 +55,7 @@ class Block:
         ).hexdigest()
         return self.hash
 
-    def add_txn(self, txn):
+    def add_txn(self, txn):         #This method adds transaction in the block
         self.txn_fees += txn.txn_fees
         if len(self.txns) < (self.size - 1):
             self.txns.append(txn)
@@ -67,7 +67,7 @@ class Block:
         self.txns[:0] = coinbase_txn
 
 
-class GenesisBlock:
+class GenesisBlock:             #Class for genesis Block
     def __init__(self, env, n):
         self.id = UUID(int=0)
         self.type = BlockType.genesis

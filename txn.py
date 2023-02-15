@@ -11,7 +11,7 @@ class TxnType(Enum):
     coinbase = "coinbase"
 
 
-class Transaction:
+class Transaction:              #Class for generating transaction
     def __init__(self, env, qty, sender, receiver):
         self.id = uuid4()
         self.type = TxnType.normal
@@ -36,7 +36,7 @@ class Transaction:
         return string
 
 
-class CoinbaseTransaction:
+class CoinbaseTransaction:          #Class for generating coinbase transaction
     def __init__(self, env, miner_id):
         self.id = uuid4()
         self.type = TxnType.coinbase

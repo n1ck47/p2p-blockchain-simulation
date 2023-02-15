@@ -3,12 +3,12 @@ import queue
 from block import GenesisBlock
 
 
-class Blockchain:
+class Blockchain:               #Class for Blockchain
     def __init__(self, env, n):
         self.genesis = GenesisBlock(env, n)
         self.total = 1
 
-    def height(self, node):
+    def height(self, node):       #Helper function to get last block
         if node is None:
             return (0, None)
 
@@ -19,7 +19,7 @@ class Blockchain:
             max_height, last_block = max(heights, key=lambda x: x[0])
             return (1 + max_height, last_block)
 
-    def find_prev_block(self, node, prevhash):
+    def find_prev_block(self, node, prevhash):          # Method to find previous block
         if node is None:
             return None
 
@@ -33,12 +33,12 @@ class Blockchain:
 
             return None
 
-    def get_last_block(self):
+    def get_last_block(self):               #Method to get last block
         finalblock = self.height(self.genesis)[1]
 
         return finalblock
 
-    def add_block(self, block):
+    def add_block(self, block):         #Method to add block in blockchain
         if block is None:
             return
 
@@ -50,7 +50,7 @@ class Blockchain:
 
         prevblock.children.append(new_block)
 
-    def block_exist(self, block, current_block):
+    def block_exist(self, block, current_block):            #Method to check if block already exist in blockchain
         if current_block is None:
             current_block = self.genesis
 
@@ -66,7 +66,7 @@ class Blockchain:
 
         return False
 
-    def all_nodes_in_chain(self, node):
+    def all_nodes_in_chain(self, node):             #Helper method to display chain
         if not node.children:
             return (1, [node])
 
@@ -75,10 +75,10 @@ class Blockchain:
             max_height, last_block = max(heights, key=lambda x: x[0])
             return (1 + max_height, [node] + last_block)
 
-    def display_chain(self):
+    def display_chain(self):            # Method to get final blockchain
         return [(node.id, node.get_hash()) for node in self.all_nodes_in_chain(self.genesis)[1]]
 
-    def count_mined_block(self, node_id):
+    def count_mined_block(self, node_id):       #Method to count number blocks mined
         longest_chain = self.all_nodes_in_chain(self.genesis)[1]
         count = 0
         for block in longest_chain:
@@ -88,7 +88,7 @@ class Blockchain:
                 count+=1
         return count
 
-    def get_blockchain_tree(self):
+    def get_blockchain_tree(self):          #Method to get blockchain with forks.
         adjancency_list = {}
         block = self.genesis
         blocks_queue = queue.Queue()
