@@ -114,6 +114,9 @@ class Node:
                 self.env.process(self.generate_txn())
 
             self.env.process(self.mine_block()) # start mining again
+            
+            if(self.id == 0):
+                yield self.env.timeout(0)
 
             yield self.env.process(self.broadcast_mssg(None, mined_block, "block")) # broadcast block to all its neighbours
             break
@@ -196,6 +199,8 @@ class Node:
                 if(self.check_add_block(mined_block, parent_block) == "invalid"): # check block validity and add if valid
                     return
 
+                
+
                 # if the recieved block's child is present in pending(future) blocks
                 # then add that child to the blockchain and broadcast (if its valid)
                 if msg.get_hash() in self.pending_blocks: 
@@ -209,8 +214,8 @@ class Node:
                 if(self.is_gen_txn == False):
                     self.env.process(self.generate_txn())
 
-        print(
-            f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
-        )
+        # print(
+        #     f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
+        # )
 
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type)) # broadcast the mssg to all its neighbours
