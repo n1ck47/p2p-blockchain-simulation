@@ -26,9 +26,8 @@ def initialize_nodes(n, z0, z1, env, txn_time, mining_time, adv_mining_power):
     node = Node(0, env, True, True, n, txn_time, mining_time)
     network.append(node)
 
-    z0 = (n*z0)/(n-1)
     z1 = (n*z1)/(n-1)
-    print(z0, z1)
+    
     for i in range(1, n):
         speed_threshold = np.random.uniform(0, 1)
         cpu_threshold = np.random.uniform(0, 1)
