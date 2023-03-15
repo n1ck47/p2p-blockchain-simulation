@@ -208,7 +208,7 @@ class Node:
                 if(self.check_add_block(mined_block, parent_block) == "invalid"): # check block validity and add if valid
                     return
 
-                if(self.id == 0 and self.attacked_block = None and self.is_selfish_mining):
+                if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
                     self.is_selfish_mining = False
 
                 if(self.id == 0 and self.attacked_block):
@@ -218,7 +218,7 @@ class Node:
                     else:   
                         honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
                         adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
-                        
+                        print(honest_blocks_length,adversary_blocks_length)
                         ahead = adversary_blocks_length - honest_blocks_length
                         if(ahead == 0):
                             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))

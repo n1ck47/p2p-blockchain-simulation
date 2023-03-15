@@ -103,3 +103,26 @@ class Blockchain:               #Class for Blockchain
                 blocks_queue.put(bl)
 
         return adjancency_list
+    
+    def helper(self,block,hash,i):
+        if block.get_hash() == hash:     
+            return i
+        ans=list()
+        for child in block.children:   
+            ans.append(self.helper(child,hash,i+1))
+        for i in ans:
+            if i is not None:
+                return i
+        
+    def distance(self,block,hash):
+        i=self.helper(block,hash,0)
+        return i
+    
+    def get_selfish_block(self,block,i):
+        if i==0:
+            return block
+        else:
+            for child in block.children:
+                return self.get_selfish_block(child,i-1)
+    
+        

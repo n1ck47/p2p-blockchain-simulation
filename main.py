@@ -91,6 +91,9 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     total_blocks_gen = 0
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
+        # print(node.id, len(node.blockchain.display_chain()), len(node.pending_blocks),node.blockchain.get_last_block().balance)
+        
+        print(f'Node: {node.id}, Mined Blocks(Chain/Generated): {node.blockchain.count_mined_block(node.id)}/{node.count_block_generated}, Total Blocks: {len(node.blockchain.display_chain())}, Fast?: {node.is_fast}, Cpu High?: {node.cpu_high}')
 
         output.append([node.id, str(node.blockchain.count_mined_block(node.id))+":"+str(node.count_block_generated), len(node.blockchain.display_chain()), node.is_fast, node.cpu_high, node.hashing_power])
 
