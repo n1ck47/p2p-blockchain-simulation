@@ -38,7 +38,10 @@ class Block:         #Class to create blocks
         block.size = self.size
         block.txns = deepcopy(self.txns)
         block.balance = deepcopy(self.balance)
-        block.children = deepcopy(self.children)
+        if(self.children):
+            for child in self.children:
+                block.children.append(child.get_copy())
+        # block.children = deepcopy(self.children)
         block.hash = self.get_hash()
         return block
 

@@ -211,14 +211,17 @@ class Node:
                 if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
                     self.is_selfish_mining = False
 
+
                 if(self.id == 0 and self.attacked_block):
                     selfish_block = self.blockchain.get_last_block()
+                    honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
                     if(selfish_block.get_hash() == mined_block.get_hash()):
                         self.attacked_block = None
-                    else:   
-                        honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
+                    elif honest_blocks_length is not None:   
                         adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
                         print(honest_blocks_length,adversary_blocks_length)
+                        if(honest_blocks_length is None):
+                            print(self.blockchain.block_exist(mined_block, self.attacked_block))
                         ahead = adversary_blocks_length - honest_blocks_length
                         if(ahead == 0):
                             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
