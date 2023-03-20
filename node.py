@@ -124,6 +124,9 @@ class Node:
                     self.is_selfish_mining = True
                     yield self.env.timeout(0)
                     break
+                elif self.attacked_block and self.is_selfish_mining:
+                    yield self.env.timeout(0)
+                    break
                 elif self.is_selfish_mining:
                     self.is_selfish_mining = False
 
@@ -211,7 +214,7 @@ class Node:
                 if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
                     self.is_selfish_mining = False
 
-
+                # add the same to the pending block section(next one)
                 if(self.id == 0 and self.attacked_block):
                     selfish_block = self.blockchain.get_last_block()
                     honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
@@ -231,6 +234,8 @@ class Node:
                             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
                             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                            self.attacked_block = None
+                            self.is_selfish_mining = False
                         elif(ahead > 1):
                             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
                             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))

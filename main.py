@@ -88,15 +88,19 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     os.mkdir(TREE_OUTPUT_DIR)
 
     output = list()
+    no_blocks_main_chain = 0
     total_blocks_gen = 0
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
         # print(node.id, len(node.blockchain.display_chain()), len(node.pending_blocks),node.blockchain.get_last_block().balance)
         
         print(f'Node: {node.id}, Mined Blocks(Chain/Generated): {node.blockchain.count_mined_block(node.id)}/{node.count_block_generated}, Total Blocks: {len(node.blockchain.display_chain())}, Fast?: {node.is_fast}, Cpu High?: {node.cpu_high}')
-
-        output.append([node.id, str(node.blockchain.count_mined_block(node.id))+":"+str(node.count_block_generated), len(node.blockchain.display_chain()), node.is_fast, node.cpu_high, node.hashing_power])
-
+        no_blocks_main_chain = max(no_blocks_main_chain,len(node.blockchain.display_chain()))
+        node_no = str(node.id)
+        if node.id == 0:
+            node_no += " (Adversary)"
+        output.append([node_no, str(node.blockchain.count_mined_block(node.id))+":"+str(node.count_block_generated), no_blocks_main_chain, node.is_fast, node.cpu_high, node.hashing_power])
+        
         total_blocks_gen += node.count_block_generated
         adj = node.blockchain.get_blockchain_tree()
 
@@ -111,11 +115,13 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
 
                 f.write(pr_str)
 
+    
     header = ["Node", " Mined Blocks(Chain:Generated)", "Total Blocks", "Fast?", "Cpu High?", "Hashing power"]
     
     # ouput table 
     print(tabulate(output, headers=header, tablefmt="grid"))
-    print(f"Total block generated: {total_blocks_gen}")
+    print(f"No of blocks in the main chain: {no_blocks_main_chain}")
+    print(f"Total blocks generated: {total_blocks_gen}")
     
 
 # Take parameters from the command line
@@ -124,7 +130,7 @@ if __name__ == "__main__":
 
     if args < 8 or args > 8:
         print(
-            "Provide 6 arguments:\n"
+            "Provide 7 arguments:\n"
             "No. of nodes\n"
             "Adversary mining power\n"
             "No of adversary's neighbors\n"
