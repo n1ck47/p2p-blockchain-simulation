@@ -69,10 +69,11 @@ def set_hashing_power(low_cpu_peers, high_cpu_peers, network, adv_mining_power):
             network[i].hashing_power = low_hash_power
 
 
-def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors):
+def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors, do_selfish_mining):
 
     env = simpy.Environment()
 
+    Node.attack_type = do_selfish_mining
     Node.network = initialize_nodes(n, z0, z1, env, txn_time, mining_time, adv_mining_power)
     finalise_network(n, Node.network, adversary_neighbors)  # connects the peers
 
@@ -94,7 +95,8 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
         node = Node.network[node_i]
         # print(node.id, len(node.blockchain.display_chain()), len(node.pending_blocks),node.blockchain.get_last_block().balance)
         
-        print(f'Node: {node.id}, Mined Blocks(Chain/Generated): {node.blockchain.count_mined_block(node.id)}/{node.count_block_generated}, Total Blocks: {len(node.blockchain.display_chain())}, Fast?: {node.is_fast}, Cpu High?: {node.cpu_high}')
+        # print(f'Node: {node.id}, Mined Blocks(Chain/Generated): {node.blockchain.count_mined_block(node.id)}/{node.count_block_generated}, Total Blocks: {len(node.blockchain.display_chain())}, Fast?: {node.is_fast}, Cpu High?: {node.cpu_high}')
+        # print(Node.network[node.id])
         no_blocks_main_chain = max(no_blocks_main_chain,len(node.blockchain.display_chain()))
         node_no = str(node.id)
         if node.id == 0:
@@ -128,16 +130,17 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
 if __name__ == "__main__":
     args = len(sys.argv)
 
-    if args < 8 or args > 8:
+    if args < 9 or args > 9 or ( sys.argv[8]!='0' and sys.argv[8]!='1' ):
         print(
-            "Provide 7 arguments:\n"
+            "Provide 8 arguments:\n"
             "No. of nodes\n"
             "Adversary mining power\n"
             "No of adversary's neighbors\n"
             "Fraction of low cpu peers\n"
             "Transaction time in ms\n"
             "Mining time in ms\n"
-            "Simulation time units"
+            "Simulation time units\n"
+            "Selfish mining?(1/0)"
         )
         exit(1)
 
@@ -149,5 +152,6 @@ if __name__ == "__main__":
     txn_time = int(sys.argv[5])  # transaction time (interarrival time) in ms
     mining_time = int(sys.argv[6])  # mining time in ms
     simulation_until = int(sys.argv[7]) # simulation time
+    do_selfish_mining = int(sys.argv[8]) # do selfish mining
 
-    main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors)
+    main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors, do_selfish_mining)
