@@ -117,15 +117,6 @@ class Node:
                 self.env.process(self.generate_txn())
 
             self.env.process(self.mine_block()) # start mining again
-            
-            if(self.id == 0):
-                if self.attacked_block is None and self.is_selfish_mining is False:
-                    self.attacked_block = current_parent_block
-                    self.is_selfish_mining = True
-                    yield self.env.timeout(0)
-                    break
-                elif self.is_selfish_mining:
-                    self.is_selfish_mining = False
 
             yield self.env.process(self.broadcast_mssg(None, mined_block, "block")) # broadcast block to all its neighbours
             break
@@ -208,29 +199,29 @@ class Node:
                 if(self.check_add_block(mined_block, parent_block) == "invalid"): # check block validity and add if valid
                     return
 
-                if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
-                    self.is_selfish_mining = False
+                # if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
+                #     self.is_selfish_mining = False
 
-                if(self.id == 0 and self.attacked_block):
-                    selfish_block = self.blockchain.get_last_block()
-                    if(selfish_block.get_hash() == mined_block.get_hash()):
-                        self.attacked_block = None
-                    else:   
-                        honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
-                        adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
-                        print(honest_blocks_length,adversary_blocks_length)
-                        ahead = adversary_blocks_length - honest_blocks_length
-                        if(ahead == 0):
-                            self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                            self.attacked_block = None
-                        elif(ahead == 1):
-                            selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                            self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                            selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
-                            self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                        elif(ahead > 1):
-                            selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                            self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                # if(self.id == 0 and self.attacked_block):
+                #     selfish_block = self.blockchain.get_last_block()
+                #     if(selfish_block.get_hash() == mined_block.get_hash()):
+                #         self.attacked_block = None
+                #     else:   
+                #         honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
+                #         adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
+                #         print(honest_blocks_length,adversary_blocks_length)
+                #         ahead = adversary_blocks_length - honest_blocks_length
+                #         if(ahead == 0):
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                #             self.attacked_block = None
+                #         elif(ahead == 1):
+                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                #         elif(ahead > 1):
+                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                     
 
                 # if the recieved block's child is present in pending(future) blocks
