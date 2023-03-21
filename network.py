@@ -1,15 +1,17 @@
 import random
 
 # connect the nodes
-def create_network(network, next_elms, que):
+def create_network(network, next_elms, que, adv_neighbors):
 
     visited = [False for i in range(len(network))]
-
+    n = len(network)
     while que:
         links = random.randint(4, 8) # set a random no of neighbors for a particular node
         next_elms = random.sample(next_elms, len(next_elms)) # randomize the nodes to which the node can connect to
         u = que.pop(0)
         visited[u] = True
+        if u==0:
+            links = int((n-1)*adv_neighbors)
         next_elms.remove(u)
         size = links - len(network[u].neighbours) # how many new neighbours can be added
         start = len(network[u].neighbours)
@@ -58,14 +60,21 @@ def reset_network(network): # remove each and every links from the network
         network[i].neighbours.clear()
 
 def check_links(network): # check if no of neighbours of a node is atleast 4
-    for node in network:
+    for i in range(1, len(network)):
+        node = network[i]
         if(len(node.neighbours)<4):
             return False
     return True
 
+def print_network(network):
+    for node in network:
+        print(node.neighbours)
+
+
 # run create network till its connected and no of links are atleast 4 for each node
-def finalise_network(n, network):
+def finalise_network(n, network, adversary_neighbors):
     while not is_connected(network) or not check_links(network):
         nodes = [i for i in range(n)]
         reset_network(network)
-        create_network(network, nodes, [0])
+        create_network(network, nodes, [0], adversary_neighbors)
+    print_network(network)

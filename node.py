@@ -31,6 +31,9 @@ class Node:
         self.invalid_blocks = dict()
         self.count_block_generated = 0
         self.is_gen_txn = False
+        self.attacked_block = None
+        self.is_selfish_mining = False
+
 
     # calculate the delay to transfer a message from one node to another
     def compute_delay(self, msg_size, receiver):  # msg_size in KB
@@ -196,6 +199,31 @@ class Node:
                 if(self.check_add_block(mined_block, parent_block) == "invalid"): # check block validity and add if valid
                     return
 
+                # if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
+                #     self.is_selfish_mining = False
+
+                # if(self.id == 0 and self.attacked_block):
+                #     selfish_block = self.blockchain.get_last_block()
+                #     if(selfish_block.get_hash() == mined_block.get_hash()):
+                #         self.attacked_block = None
+                #     else:   
+                #         honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
+                #         adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
+                #         print(honest_blocks_length,adversary_blocks_length)
+                #         ahead = adversary_blocks_length - honest_blocks_length
+                #         if(ahead == 0):
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                #             self.attacked_block = None
+                #         elif(ahead == 1):
+                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                #         elif(ahead > 1):
+                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    
+
                 # if the recieved block's child is present in pending(future) blocks
                 # then add that child to the blockchain and broadcast (if its valid)
                 if msg.get_hash() in self.pending_blocks: 
@@ -209,8 +237,8 @@ class Node:
                 if(self.is_gen_txn == False):
                     self.env.process(self.generate_txn())
 
-        print(
-            f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
-        )
+        # print(
+        #     f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
+        # )
 
         yield self.env.process(self.broadcast_mssg(sender, msg, msg_type)) # broadcast the mssg to all its neighbours
