@@ -77,6 +77,7 @@ class GenesisBlock:             #Class for genesis Block
         self.timestamp = env.now
         self.children = list()
         self.balance = [NODE_STARTING_BALANCE]*n
+        self.miner_id = -1
 
     def get_hash(self):
         return sha256(str(self.id).encode()).hexdigest()
