@@ -97,7 +97,7 @@ class Blockchain:               #Class for Blockchain
         while not blocks_queue.empty():
             block = blocks_queue.get()
             #Making adjacency list of blockchain to help visualizing the final blockchain
-            adjancency_list[f"{str(block.id)}::{str(block.timestamp)}"] = [f"{str(i.id)}::{str(i.timestamp)}" for i in block.children] 
+            adjancency_list[f"{str(block.id)}::{str(block.timestamp)}::{str(block.miner_id)}"] = [f"{str(i.id)}::{str(i.timestamp)}::{str(i.miner_id)}" for i in block.children] 
 
             for bl in block.children:
                 blocks_queue.put(bl)
