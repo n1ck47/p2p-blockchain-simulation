@@ -38,6 +38,16 @@ class Blockchain:               #Class for Blockchain
 
         return finalblock
 
+    def blocks_count(self,block=None):
+        if block is None:
+            block = self.genesis
+        if len(block.children)==0:
+            return 1
+        ans = 1
+        for node in block.children:
+            ans += self.blocks_count(node)
+        return ans
+
     def add_block(self, block):         #Method to add block in blockchain
         if block is None:
             return

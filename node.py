@@ -9,7 +9,7 @@ from constants import *
 from txn import CoinbaseTransaction, Transaction 
 
 class Node:
-    network = list()
+    network = None
     attack_type = None
 
     def __init__(self, id, env, is_fast, cpu_high, n, txn_time, mining_time):
@@ -203,18 +203,19 @@ class Node:
                 #     print(self.blockchain.block_exist(mined_block, self.attacked_block))
                 ahead = adversary_blocks_length - honest_blocks_length
                 if(ahead == 0):
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                     self.attacked_block = None
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                 elif(ahead == 1):
                     selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    event1 = self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                     selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    event2 = self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                     self.attacked_block = None
                     self.is_selfish_mining = False
+                    yield self.env.all_of([event1, event2])
                 elif(ahead > 1):
                     selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
 
     def stubborn_mining(self, mined_block):
         msg_type = 'block'
@@ -235,14 +236,14 @@ class Node:
                 #     print(self.blockchain.block_exist(mined_block, self.attacked_block))
                 ahead = adversary_blocks_length - honest_blocks_length
                 if(ahead == 0):
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                     self.is_stubborn_mining = True
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                 elif(ahead == 1):
                     selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                 elif(ahead > 1):
                     selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                    self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
                 elif(ahead < 0):
                     self.attacked_block = None
                     self.is_selfish_mining = False
@@ -276,7 +277,6 @@ class Node:
                 if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
                     self.is_selfish_mining = False
 
-                # add the same to the pending block section(next one)
                 if self.attack_type == 1:
                     self.selfish_mining(mined_block)
                 else:
