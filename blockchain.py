@@ -38,6 +38,7 @@ class Blockchain:               #Class for Blockchain
 
         return finalblock
 
+    # return the no of blocks in the entire tree
     def blocks_count(self,block=None):
         if block is None:
             block = self.genesis

@@ -188,20 +188,21 @@ class Node:
         self.env.process(self.mine_block()) # start mining over the new block
         return "valid"
 
-
+    # Selfish mining attack
+    # Mined block is the latest recieved block(honest)
     def selfish_mining(self, mined_block):
         msg_type = 'block'
         if(self.id == 0 and self.attacked_block):
             selfish_block = self.blockchain.get_last_block()
             honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
+
             if(selfish_block.get_hash() == mined_block.get_hash()):
                 self.attacked_block = None
             elif honest_blocks_length is not None:   
                 adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
-                # print(honest_blocks_length,adversary_blocks_length)
-                # if(honest_blocks_length is None):
-                #     print(self.blockchain.block_exist(mined_block, self.attacked_block))
                 ahead = adversary_blocks_length - honest_blocks_length
+                
+                # release block on the bases of no of blocks attacker is ahead of the honest chain
                 if(ahead == 0):
                     self.attacked_block = None
                     yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
@@ -217,6 +218,8 @@ class Node:
                     selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
                     yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
 
+    # Stubborn mining attack
+    # Mined block is the latest recieved block(honest)
     def stubborn_mining(self, mined_block):
         msg_type = 'block'
         if(self.id == 0 and self.attacked_block):
@@ -231,10 +234,9 @@ class Node:
                 self.attacked_block = None
             elif honest_blocks_length is not None:   
                 adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
-                # print(honest_blocks_length,adversary_blocks_length)
-                # if(honest_blocks_length is None):
-                #     print(self.blockchain.block_exist(mined_block, self.attacked_block))
                 ahead = adversary_blocks_length - honest_blocks_length
+                
+                # release block on the bases of no of blocks attacker is ahead of the honest chain
                 if(ahead == 0):
                     self.is_stubborn_mining = True
                     yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
