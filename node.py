@@ -6,11 +6,11 @@ import numpy as np
 from block import Block
 from blockchain import Blockchain
 from constants import *
-from txn import CoinbaseTransaction, Transaction
-
+from txn import CoinbaseTransaction, Transaction 
 
 class Node:
-    network = list()
+    network = None
+    attack_type = None
 
     def __init__(self, id, env, is_fast, cpu_high, n, txn_time, mining_time):
         self.id = id
@@ -33,6 +33,7 @@ class Node:
         self.is_gen_txn = False
         self.attacked_block = None
         self.is_selfish_mining = False
+        self.is_stubborn_mining = False
 
 
     # calculate the delay to transfer a message from one node to another
@@ -117,6 +118,20 @@ class Node:
                 self.env.process(self.generate_txn())
 
             self.env.process(self.mine_block()) # start mining again
+            
+            if(self.id == 0):
+                self.is_stubborn_mining = False
+                if self.attacked_block is None and self.is_selfish_mining is False:
+                    self.attacked_block = current_parent_block
+                    self.is_selfish_mining = True
+                    yield self.env.timeout(0)
+                    break
+                elif self.attacked_block and self.is_selfish_mining:
+                    yield self.env.timeout(0)
+                    break
+                elif self.is_selfish_mining:
+                    self.is_selfish_mining = False
+
 
             yield self.env.process(self.broadcast_mssg(None, mined_block, "block")) # broadcast block to all its neighbours
             break
@@ -174,6 +189,69 @@ class Node:
         self.env.process(self.mine_block()) # start mining over the new block
         return "valid"
 
+    # Selfish mining attack
+    # Mined block is the latest recieved block(honest)
+    def selfish_mining(self, mined_block):
+        msg_type = 'block'
+        if(self.id == 0 and self.attacked_block):
+            selfish_block = self.blockchain.get_last_block()
+            honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
+
+            if(selfish_block.get_hash() == mined_block.get_hash()):
+                self.attacked_block = None
+            elif honest_blocks_length is not None:   
+                adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
+                ahead = adversary_blocks_length - honest_blocks_length
+                
+                # release block on the bases of no of blocks attacker is ahead of the honest chain
+                if(ahead == 0):
+                    self.attacked_block = None
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                elif(ahead == 1):
+                    selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                    event1 = self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
+                    event2 = self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                    self.attacked_block = None
+                    self.is_selfish_mining = False
+                    yield self.env.all_of([event1, event2])
+                elif(ahead > 1):
+                    selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+
+    # Stubborn mining attack
+    # Mined block is the latest recieved block(honest)
+    def stubborn_mining(self, mined_block):
+        msg_type = 'block'
+        if(self.id == 0 and self.attacked_block):
+            if(self.is_stubborn_mining):
+                self.is_stubborn_mining = False
+                self.is_selfish_mining = False
+                self.attacked_block = None
+                return
+            selfish_block = self.blockchain.get_last_block()
+            honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
+            if(selfish_block.get_hash() == mined_block.get_hash()):
+                self.attacked_block = None
+            elif honest_blocks_length is not None:   
+                adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
+                ahead = adversary_blocks_length - honest_blocks_length
+                
+                # release block on the bases of no of blocks attacker is ahead of the honest chain
+                if(ahead == 0):
+                    self.is_stubborn_mining = True
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                elif(ahead == 1):
+                    selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                elif(ahead > 1):
+                    selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
+                    yield self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
+                elif(ahead < 0):
+                    self.attacked_block = None
+                    self.is_selfish_mining = False
+                    self.is_stubborn_mining = False
+
     def recv_msg(self, sender, msg, msg_type):
         if msg_type == "txn":
             # for loop less forwarding
@@ -199,30 +277,13 @@ class Node:
                 if(self.check_add_block(mined_block, parent_block) == "invalid"): # check block validity and add if valid
                     return
 
-                # if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
-                #     self.is_selfish_mining = False
+                if self.id == 0 and self.attacked_block == None and self.is_selfish_mining:
+                    self.is_selfish_mining = False
 
-                # if(self.id == 0 and self.attacked_block):
-                #     selfish_block = self.blockchain.get_last_block()
-                #     if(selfish_block.get_hash() == mined_block.get_hash()):
-                #         self.attacked_block = None
-                #     else:   
-                #         honest_blocks_length = self.blockchain.distance(self.attacked_block, mined_block.get_hash())
-                #         adversary_blocks_length = self.blockchain.distance(self.attacked_block, selfish_block.get_hash())
-                #         print(honest_blocks_length,adversary_blocks_length)
-                #         ahead = adversary_blocks_length - honest_blocks_length
-                #         if(ahead == 0):
-                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                #             self.attacked_block = None
-                #         elif(ahead == 1):
-                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length+1)
-                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                #         elif(ahead > 1):
-                #             selfish_block = self.blockchain.get_selfish_block(self.attacked_block, honest_blocks_length)
-                #             self.env.process(self.broadcast_mssg(0, selfish_block, msg_type))
-                    
+                if self.attack_type == 1:
+                    self.selfish_mining(mined_block)
+                else:
+                    self.stubborn_mining(mined_block)
 
                 # if the recieved block's child is present in pending(future) blocks
                 # then add that child to the blockchain and broadcast (if its valid)
@@ -231,7 +292,12 @@ class Node:
                     parent_block = self.blockchain.find_prev_block(self.blockchain.genesis, child_block.prev_hash)
                     if(self.check_add_block(child_block.get_copy(), parent_block) == "invalid"):
                         return
-                    yield self.env.process(self.broadcast_mssg(sender, child_block, msg_type))
+                    if self.attack_type == 1:
+                        self.selfish_mining(mined_block)
+                    else:
+                        self.stubborn_mining(mined_block)
+                    if(self.id!=0):
+                        yield self.env.process(self.broadcast_mssg(sender, child_block, msg_type))
 
                 # if the current node wasn't generating txn then start as its balance may have been updated
                 if(self.is_gen_txn == False):
@@ -240,5 +306,5 @@ class Node:
         # print(
         #     f"{msg_type} received: {msg} Time: {self.env.now} Creation Time: {msg.timestamp} Sender: {sender.id} Receiver: {self.id}"
         # )
-
-        yield self.env.process(self.broadcast_mssg(sender, msg, msg_type)) # broadcast the mssg to all its neighbours
+        if msg_type == "txn" or self.id!=0:
+            yield self.env.process(self.broadcast_mssg(sender, msg, msg_type)) # broadcast the mssg to all its neighbours

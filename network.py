@@ -77,4 +77,4 @@ def finalise_network(n, network, adversary_neighbors):
         nodes = [i for i in range(n)]
         reset_network(network)
         create_network(network, nodes, [0], adversary_neighbors)
-    print_network(network)
+    # print_network(network)
