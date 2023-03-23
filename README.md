@@ -1,6 +1,10 @@
-# CS765 Assignment 1
+# CS765 Assignment 2
+Submitted by: 
+* Nikhil Sharma - 22M0770
+* Saksham Agrawal - 22M2106
+* Anmol Garg - 22M2117
 
-# Simulation of a Cryptocurrency P2P Network
+# Simulating a selfish mining attack using the P2P Cryptocurrency Network
 
 ## About project
 The project is divided into 9 files, details as follows:  
@@ -37,7 +41,7 @@ The project is divided into 9 files, details as follows:
 ## Execution
 The main file can be executed as:
 ```
-(.venv)$ python main.py <n> <z0> <z1> <txn_time> <mining_time> <simulation_until>
+(.venv)$ python main.py <n> <z0> <adversary_mining_power> <adversary_neighbors_fraction> <z1> <txn_time> <mining_time> <simulation_until> <attack_type>
 ```
 
 The folder path where blockchain trees of all nodes will be stored after the simulation is available in `constants.py` file in constant `TREE_OUTPUT_DIR`.  
