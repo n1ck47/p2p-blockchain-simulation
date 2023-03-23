@@ -93,7 +93,7 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     total_blocks_gen = 0
     mpu_adv = 0
     adv_block_main = 0
-
+    r_pool = 0
     # Formatting and saving trees of all nodes in txt files
     for node_i in range(len(Node.network)):
         node = Node.network[node_i]
@@ -106,7 +106,8 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
         if node.id == 0:
             node_no += " (Adversary)"
             adv_block_main = node.blockchain.count_mined_block(node.id)
-            mpu_adv = float(adv_block_main)/node.count_block_generated
+            if node.count_block_generated:
+                mpu_adv = float(adv_block_main)/node.count_block_generated
         output.append([node_no, str(node.blockchain.count_mined_block(node.id))+":"+str(node.count_block_generated), no_blocks_main_chain, node.is_fast, node.cpu_high, node.hashing_power])
         
         total_blocks_gen += node.count_block_generated
@@ -128,8 +129,11 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     
     # ouput table 
     # print(tabulate(output, headers=header, tablefmt="grid"))
-    mpu_overall = float(no_blocks_main_chain)/total_blocks_gen
-    r_pool = float(adv_block_main)/(no_blocks_main_chain)
+    mpu_overall = 0
+    if total_blocks_gen:
+        mpu_overall = float(no_blocks_main_chain)/total_blocks_gen
+    if no_blocks_main_chain:
+        r_pool = float(adv_block_main)/(no_blocks_main_chain)
     # print(f"R_pool: {r_pool}")
     return r_pool
     # print(f"MPU Adversary: {mpu_adv}\nMPU Overall: {mpu_overall}")
@@ -170,16 +174,18 @@ if __name__ == "__main__":
     z1 = 0.3  # fraction of low cpu peers
     txn_time = 1000  # transaction time (interarrival time) in ms
     mining_time = 6000  # mining time in ms
-    simulation_until = 400000 # simulation time
+    simulation_until = 40000 # simulation time
     do_selfish_mining = 1 # do selfish mining
 
-    print("Alpha, Gamma, Expected Result, Test Result")
-    for adv_mining_power in range(0.05,0.61,0.05):
-        for adversary_neighbors in range(0.05,1.01,0.05):
+    print("Alpha, Gamma, Expected Result, Test Result Selfish, Test result stuborn")
+    for i in range(5,61,5):
+        adv_mining_power = i/100
+        for j in range(5,101,5):
+            adversary_neighbors = j/100
             alpha = adv_mining_power
             gamma = adversary_neighbors
             num=alpha*((1-alpha)**2)*(4*alpha+gamma*(1-2*alpha))-alpha**3
             den=1-alpha*(1+(2-alpha)*alpha)
             r_pool = main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors, do_selfish_mining)
-
-            print(f"{alpha}, {gamma}, {num/den}, {r_pool}")
+            r_pool2 = main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors, 0)
+            print(f"{alpha}, {gamma}, {num/den}, {r_pool}, {r_pool2}")
