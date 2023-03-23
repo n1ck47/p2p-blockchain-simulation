@@ -44,10 +44,14 @@ The main file can be executed as:
 (.venv)$ python main.py <n> <z0> <adversary_mining_power> <adversary_neighbors_fraction> <z1> <txn_time> <mining_time> <simulation_until> <attack_type>
 ```
 
+`<attack_type>:` 0->Stubborn Mining, 1->Selfish Mining.  
+
+**NOTE:** Node 0 will always be considered as the adversary.
+
 The folder path where blockchain trees of all nodes will be stored after the simulation is available in `constants.py` file in constant `TREE_OUTPUT_DIR`.  
 The nodes of the tree are stored in the format:
 ```
-<block_id>::<block_timestamp>
+<block_id>::<block_timestamp>::<miner_id>
 ```
 
 To visualize the above tree files, run the script `visualize.py` as:
