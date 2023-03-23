@@ -132,6 +132,7 @@ class Node:
                 elif self.is_selfish_mining:
                     self.is_selfish_mining = False
 
+
             yield self.env.process(self.broadcast_mssg(None, mined_block, "block")) # broadcast block to all its neighbours
             break
 

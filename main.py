@@ -92,6 +92,7 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     os.mkdir(TREE_OUTPUT_DIR)
 
     output = list()
+
     no_blocks_main_chain = len(Node.network[0].blockchain.display_chain())
     total_blocks_gen = Node.network[0].blockchain.blocks_count()
     mpu_adv = 0
