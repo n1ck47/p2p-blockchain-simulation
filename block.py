@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 from datetime import datetime
 from enum import Enum
 from hashlib import sha256
@@ -38,11 +38,11 @@ class Block:         #Class to create blocks
         block.size = self.size
         block.txns = deepcopy(self.txns)
         block.balance = deepcopy(self.balance)
-        if(self.children):
-            for child in self.children:
-                block.children.append(child.get_copy())
-        # block.children = deepcopy(self.children)
         block.hash = self.get_hash()
+        # if(self.children):
+        #     for child in self.children:
+        #         block.children.append(child.get_copy())
+        block.children = copy(self.children)
         return block
 
     def get_hash(self):         #This method returns the hash of the block

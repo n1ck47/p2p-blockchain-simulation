@@ -91,6 +91,8 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     output = list()
     no_blocks_main_chain = 0
     total_blocks_gen = 0
+    mpu_adv = 0
+    adv_block_main = 0
 
     # Formatting and saving trees of all nodes in txt files
     for node_i in range(len(Node.network)):
@@ -103,6 +105,8 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
         node_no = str(node.id)
         if node.id == 0:
             node_no += " (Adversary)"
+            adv_block_main = node.blockchain.count_mined_block(node.id)
+            mpu_adv = float(adv_block_main)/node.count_block_generated
         output.append([node_no, str(node.blockchain.count_mined_block(node.id))+":"+str(node.count_block_generated), no_blocks_main_chain, node.is_fast, node.cpu_high, node.hashing_power])
         
         total_blocks_gen += node.count_block_generated
@@ -123,37 +127,59 @@ def main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, a
     header = ["Node", " Mined Blocks(Chain:Generated)", "Total Blocks", "Fast?", "Cpu High?", "Hashing power"]
     
     # ouput table 
-    print(tabulate(output, headers=header, tablefmt="grid"))
-    print(f"No of blocks in the main chain: {no_blocks_main_chain}")
-    print(f"Total blocks generated: {total_blocks_gen}")
+    # print(tabulate(output, headers=header, tablefmt="grid"))
+    mpu_overall = float(no_blocks_main_chain)/total_blocks_gen
+    r_pool = float(adv_block_main)/(no_blocks_main_chain)
+    # print(f"R_pool: {r_pool}")
+    return r_pool
+    # print(f"MPU Adversary: {mpu_adv}\nMPU Overall: {mpu_overall}")
+    # print(f"No of blocks in the main chain: {no_blocks_main_chain}")
+    # print(f"Total blocks generated: {total_blocks_gen}")
     
 
 # Take parameters from the command line
 if __name__ == "__main__":
     args = len(sys.argv)
 
-    if args < 9 or args > 9 or ( sys.argv[8]!='0' and sys.argv[8]!='1' ):
-        print(
-            "Provide 8 arguments:\n"
-            "No. of nodes\n"
-            "Adversary mining power\n"
-            "No of adversary's neighbors\n"
-            "Fraction of low cpu peers\n"
-            "Transaction time in ms\n"
-            "Mining time in ms\n"
-            "Simulation time units\n"
-            "Selfish mining?(1/0)"
-        )
-        exit(1)
+    # if args < 9 or args > 9 or ( sys.argv[8]!='0' and sys.argv[8]!='1' ):
+    #     print(
+    #         "Provide 8 arguments:\n"
+    #         "No. of nodes\n"
+    #         "Adversary mining power\n"
+    #         "No of adversary's neighbors\n"
+    #         "Fraction of low cpu peers\n"
+    #         "Transaction time in ms\n"
+    #         "Mining time in ms\n"
+    #         "Simulation time units\n"
+    #         "Selfish mining?(1/0)"
+    #     )
+    #     exit(1)
 
-    n = int(sys.argv[1])  # no. of peers
+    # n = int(sys.argv[1])  # no. of peers
+    # z0 = 0.5  # fraction of slow peers
+    # adv_mining_power = float(sys.argv[2])
+    # adversary_neighbors = float(sys.argv[3])
+    # z1 = float(sys.argv[4])  # fraction of low cpu peers
+    # txn_time = int(sys.argv[5])  # transaction time (interarrival time) in ms
+    # mining_time = int(sys.argv[6])  # mining time in ms
+    # simulation_until = int(sys.argv[7]) # simulation time
+    # do_selfish_mining = int(sys.argv[8]) # do selfish mining
+
+    n = 50  # no. of peers
     z0 = 0.5  # fraction of slow peers
-    adv_mining_power = float(sys.argv[2])
-    adversary_neighbors = float(sys.argv[3])
-    z1 = float(sys.argv[4])  # fraction of low cpu peers
-    txn_time = int(sys.argv[5])  # transaction time (interarrival time) in ms
-    mining_time = int(sys.argv[6])  # mining time in ms
-    simulation_until = int(sys.argv[7]) # simulation time
-    do_selfish_mining = int(sys.argv[8]) # do selfish mining
+    z1 = 0.3  # fraction of low cpu peers
+    txn_time = 1000  # transaction time (interarrival time) in ms
+    mining_time = 6000  # mining time in ms
+    simulation_until = 400000 # simulation time
+    do_selfish_mining = 1 # do selfish mining
 
-    main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors, do_selfish_mining)
+    print("Alpha, Gamma, Expected Result, Test Result")
+    for adv_mining_power in range(0.05,0.61,0.05):
+        for adversary_neighbors in range(0.05,1.01,0.05):
+            alpha = adv_mining_power
+            gamma = adversary_neighbors
+            num=alpha*((1-alpha)**2)*(4*alpha+gamma*(1-2*alpha))-alpha**3
+            den=1-alpha*(1+(2-alpha)*alpha)
+            r_pool = main(n, z0, z1, txn_time, mining_time, simulation_until, adv_mining_power, adversary_neighbors, do_selfish_mining)
+
+            print(f"{alpha}, {gamma}, {num/den}, {r_pool}")
